@@ -38,7 +38,8 @@ export function MilkdownEditor({
           onChangeRef.current(markdown)
         })
       })
-      .config(nord as unknown as (ctx: never) => void)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .config(nord as any)
       .use(commonmark)
       .use(gfm)
       .use(history)
