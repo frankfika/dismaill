@@ -2,7 +2,10 @@
  * Unit Tests - Email Store
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { invoke as tauriInvoke } from '@tauri-apps/api/core'
 import { useEmailStore } from '../../../src/renderer/src/stores/email.store'
+
+const mockInvoke = vi.mocked(tauriInvoke)
 
 describe('Email Store', () => {
   beforeEach(() => {
@@ -16,6 +19,7 @@ describe('Email Store', () => {
       isSyncing: false,
       error: null,
     })
+    vi.clearAllMocks()
   })
 
   describe('初始状态', () => {
@@ -93,7 +97,7 @@ describe('Email Store', () => {
       const accounts = [
         { id: 'acc-1', emailAddress: 'test@gmail.com', provider: 'gmail', isActive: true },
       ]
-      window.aura.invoke = vi.fn().mockResolvedValue({ success: true, data: accounts })
+      mockInvoke.mockResolvedValue(accounts)
 
       await useEmailStore.getState().loadAccounts()
 
@@ -104,10 +108,7 @@ describe('Email Store', () => {
     })
 
     it('加载失败应该设置错误', async () => {
-      window.aura.invoke = vi.fn().mockResolvedValue({
-        success: false,
-        error: { code: 'NET_OFFLINE', message: 'Network error' },
-      })
+      mockInvoke.mockRejectedValue(new Error('Network error'))
 
       await useEmailStore.getState().loadAccounts()
 
@@ -116,7 +117,7 @@ describe('Email Store', () => {
     })
 
     it('异常应该被捕获', async () => {
-      window.aura.invoke = vi.fn().mockRejectedValue(new Error('IPC failed'))
+      mockInvoke.mockRejectedValue(new Error('IPC failed'))
 
       await useEmailStore.getState().loadAccounts()
 
@@ -127,9 +128,10 @@ describe('Email Store', () => {
   describe('loadEmails', () => {
     it('成功加载应该更新邮件列表', async () => {
       useEmailStore.setState({ selectedAccountId: 'acc-1' })
-      window.aura.invoke = vi.fn().mockResolvedValue({
-        success: true,
-        data: { emails: [{ id: '1', subject: 'Test' }], total: 1, hasMore: false },
+      mockInvoke.mockResolvedValue({
+        emails: [{ id: '1', subject: 'Test' }],
+        total: 1,
+        hasMore: false,
       })
 
       await useEmailStore.getState().loadEmails()
@@ -141,7 +143,7 @@ describe('Email Store', () => {
 
   describe('sendEmail', () => {
     it('成功发送应该返回 true', async () => {
-      window.aura.invoke = vi.fn().mockResolvedValue({ success: true })
+      mockInvoke.mockResolvedValue({ status: 'sent', messageId: 'msg-1' })
 
       const result = await useEmailStore.getState().sendEmail({
         accountId: 'acc-1',
@@ -154,7 +156,7 @@ describe('Email Store', () => {
     })
 
     it('发送失败应该返回 false', async () => {
-      window.aura.invoke = vi.fn().mockResolvedValue({ success: false })
+      mockInvoke.mockRejectedValue(new Error('Send failed'))
 
       const result = await useEmailStore.getState().sendEmail({
         accountId: 'acc-1',
@@ -167,7 +169,7 @@ describe('Email Store', () => {
     })
 
     it('异常应该返回 false', async () => {
-      window.aura.invoke = vi.fn().mockRejectedValue(new Error('Send failed'))
+      mockInvoke.mockRejectedValue(new Error('Send failed'))
 
       const result = await useEmailStore.getState().sendEmail({
         accountId: 'acc-1',

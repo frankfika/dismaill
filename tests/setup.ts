@@ -8,34 +8,26 @@ const ipcHandlers = new Map<string, (...args: unknown[]) => Promise<IpcResponse>
 // Channels that should return arrays by default
 const listChannels = new Set(['account:list', 'email:list', 'tag:list', 'signature:list'])
 
-// Mock window.aura (the preload bridge)
-const mockAura = {
-  invoke: vi.fn(async (channel: string, ...args: unknown[]): Promise<IpcResponse> => {
+// Mock @tauri-apps/api/core invoke
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(async (command: string, payload?: unknown) => {
+    // Map Tauri command names back to frontend channel names for handler lookup
+    const channel = command.replace(/_/g, ':')
     const handler = ipcHandlers.get(channel)
     if (handler) {
-      return handler(...args)
+      const response = await handler(channel, payload)
+      if (response.success) {
+        return response.data
+      }
+      throw new Error(response.error?.message || response.error?.code || 'Invoke error')
     }
     // Return array for list endpoints, object otherwise
-    return { success: true, data: listChannels.has(channel) ? [] : {} }
+    return listChannels.has(channel) ? [] : {}
   }),
-  on: vi.fn((_channel: string, _callback: (...args: unknown[]) => void) => {
-    return () => {} // unsubscribe
-  }),
-  platform: 'darwin' as NodeJS.Platform,
-  versions: {
-    node: '20.0.0',
-    chrome: '120.0.0',
-    electron: '32.0.0',
-  },
-}
+}))
 
 // Only set up browser globals when running in jsdom environment
 if (typeof window !== 'undefined') {
-  Object.defineProperty(window, 'aura', {
-    writable: true,
-    value: mockAura,
-  })
-
   // Mock window.matchMedia
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -85,18 +77,10 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 beforeEach(() => {
   vi.clearAllMocks()
   ipcHandlers.clear()
-  // Re-assign default mock after clearAllMocks
-  mockAura.invoke.mockImplementation(async (channel: string, ...args: unknown[]): Promise<IpcResponse> => {
-    const handler = ipcHandlers.get(channel)
-    if (handler) {
-      return handler(...args)
-    }
-    return { success: true, data: listChannels.has(channel) ? [] : {} }
-  })
 })
 
 // Export helpers for tests
-export { mockAura, ipcHandlers }
+export { ipcHandlers }
 
 export const registerIpcHandler = (channel: string, handler: (...args: unknown[]) => Promise<IpcResponse>) => {
   ipcHandlers.set(channel, handler)

@@ -2,7 +2,10 @@
  * Unit Tests - Auth Store
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { invoke as tauriInvoke } from '@tauri-apps/api/core'
 import { useAuthStore } from '../../../src/renderer/src/stores/auth.store'
+
+const mockInvoke = vi.mocked(tauriInvoke)
 
 describe('Auth Store', () => {
   beforeEach(() => {
@@ -12,6 +15,7 @@ describe('Auth Store', () => {
       isConnecting: false,
       error: null,
     })
+    vi.clearAllMocks()
   })
 
   describe('初始状态', () => {
@@ -69,9 +73,10 @@ describe('Auth Store', () => {
 
   describe('connect', () => {
     it('成功连接应该更新钱包状态', async () => {
-      window.aura.invoke = vi.fn().mockResolvedValue({
-        success: true,
-        data: { address: '0xabcdef', ensName: 'alice.eth', avatarUrl: 'https://example.com/avatar.png' },
+      mockInvoke.mockResolvedValue({
+        address: '0xabcdef',
+        ensName: 'alice.eth',
+        avatarUrl: 'https://example.com/avatar.png',
       })
 
       await useAuthStore.getState().connect('metamask')
@@ -85,10 +90,7 @@ describe('Auth Store', () => {
     })
 
     it('连接失败应该设置错误', async () => {
-      window.aura.invoke = vi.fn().mockResolvedValue({
-        success: false,
-        error: { code: 'AUTH_WALLET_REJECTED', message: 'User rejected' },
-      })
+      mockInvoke.mockRejectedValue(new Error('User rejected'))
 
       await useAuthStore.getState().connect('metamask')
 
@@ -99,7 +101,7 @@ describe('Auth Store', () => {
     })
 
     it('连接异常应该捕获错误', async () => {
-      window.aura.invoke = vi.fn().mockRejectedValue(new Error('Network error'))
+      mockInvoke.mockRejectedValue(new Error('Network error'))
 
       await useAuthStore.getState().connect('metamask')
 
@@ -112,6 +114,7 @@ describe('Auth Store', () => {
     it('应该清除钱包状态', async () => {
       useAuthStore.setState({ wallet: { address: '0x1234' }, isConnected: true })
 
+      mockInvoke.mockResolvedValue(undefined)
       await useAuthStore.getState().disconnect()
 
       expect(useAuthStore.getState().wallet).toBeNull()
@@ -120,14 +123,9 @@ describe('Auth Store', () => {
 
     it('即使 IPC 失败也应该清除状态', async () => {
       useAuthStore.setState({ wallet: { address: '0x1234' }, isConnected: true })
-      window.aura.invoke = vi.fn().mockImplementation(async () => { throw new Error('IPC error') })
+      mockInvoke.mockRejectedValue(new Error('IPC error'))
 
-      // disconnect uses try/finally, so error is re-thrown but state is still cleared
-      try {
-        await useAuthStore.getState().disconnect()
-      } catch {
-        // expected
-      }
+      await useAuthStore.getState().disconnect()
 
       expect(useAuthStore.getState().wallet).toBeNull()
       expect(useAuthStore.getState().isConnected).toBe(false)
