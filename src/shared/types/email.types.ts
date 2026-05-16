@@ -1,0 +1,90 @@
+// Email Types
+export interface Email {
+  id: string
+  emailAccountId: string
+  messageId: string
+  folder: string
+  subject: string | null
+  sender: string
+  senderName: string | null
+  recipientsTo: string | null
+  recipientsCc: string | null
+  recipientsBcc: string | null
+  bodyText: string | null
+  bodyHtml: string | null
+  snippet: string | null
+  receivedAt: string
+  isRead: boolean
+  isStarred: boolean
+  isDeleted: boolean
+  hasAttachments: boolean
+}
+
+export interface EmailAccount {
+  id: string
+  walletAddress: string
+  emailAddress: string
+  displayName: string | null
+  provider: 'gmail' | 'outlook' | 'icloud' | 'custom'
+  imapHost: string
+  imapPort: number
+  smtpHost: string
+  smtpPort: number
+  authType: 'password' | 'oauth2'
+  isActive: boolean
+  lastSyncAt: string | null
+}
+
+export interface EmailSendRequest {
+  accountId: string
+  to: string[]
+  cc?: string[]
+  bcc?: string[]
+  subject: string
+  body: string
+  bodyHtml?: string
+  signatureId?: string
+  replyTo?: string
+  attachments?: EmailAttachment[]
+}
+
+export interface EmailAttachment {
+  filename: string
+  path: string
+  contentType: string
+}
+
+export interface EmailListRequest {
+  accountId?: string
+  folder?: string
+  tagId?: string
+  query?: string
+  page: number
+  pageSize: number
+}
+
+export interface EmailListResponse {
+  emails: EmailSummary[]
+  total: number
+  hasMore: boolean
+}
+
+export interface EmailSummary {
+  id: string
+  accountId: string
+  messageId: string
+  subject: string
+  sender: string
+  senderName?: string
+  snippet: string
+  receivedAt: string
+  isRead: boolean
+  isStarred: boolean
+  tags: TagSummary[]
+}
+
+export interface TagSummary {
+  id: string
+  name: string
+  color: string
+}

@@ -1,0 +1,179 @@
+/* Milkdown Editor Styles */
+
+.milkdown-editor-wrapper {
+  min-height: 300px;
+}
+
+.milkdown-editor-wrapper .milkdown {
+  padding: 1rem;
+  outline: none;
+}
+
+/* Editor content styles */
+.milkdown-editor-wrapper .milkdown .editor {
+  outline: none;
+}
+
+/* Heading styles */
+.milkdown-editor-wrapper .milkdown h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--foreground));
+}
+
+.milkdown-editor-wrapper .milkdown h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+}
+
+.milkdown-editor-wrapper .milkdown h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+}
+
+.milkdown-editor-wrapper .milkdown h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+}
+
+/* Paragraph */
+.milkdown-editor-wrapper .milkdown p {
+  margin-bottom: 0.75rem;
+  line-height: 1.7;
+  color: hsl(var(--foreground));
+}
+
+/* Lists */
+.milkdown-editor-wrapper .milkdown ul,
+.milkdown-editor-wrapper .milkdown ol {
+  margin-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.milkdown-editor-wrapper .milkdown ul {
+  list-style-type: disc;
+}
+
+.milkdown-editor-wrapper .milkdown ol {
+  list-style-type: decimal;
+}
+
+.milkdown-editor-wrapper .milkdown li {
+  margin-bottom: 0.25rem;
+}
+
+/* Links */
+.milkdown-editor-wrapper .milkdown a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.milkdown-editor-wrapper .milkdown a:hover {
+  color: hsl(var(--primary) / 0.8);
+}
+
+/* Code */
+.milkdown-editor-wrapper .milkdown code {
+  background: hsl(var(--muted));
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875em;
+}
+
+.milkdown-editor-wrapper .milkdown pre {
+  background: hsl(var(--muted));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+
+.milkdown-editor-wrapper .milkdown pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Blockquote */
+.milkdown-editor-wrapper .milkdown blockquote {
+  border-left: 4px solid hsl(var(--primary));
+  padding-left: 1rem;
+  margin-left: 0;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
+/* Horizontal rule */
+.milkdown-editor-wrapper .milkdown hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1.5rem 0;
+}
+
+/* Tables */
+.milkdown-editor-wrapper .milkdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.75rem;
+}
+
+.milkdown-editor-wrapper .milkdown th,
+.milkdown-editor-wrapper .milkdown td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.milkdown-editor-wrapper .milkdown th {
+  background: hsl(var(--muted));
+  font-weight: 600;
+}
+
+/* Task list */
+.milkdown-editor-wrapper .milkdown .task-list-item {
+  list-style: none;
+  margin-left: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .task-list-item input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+/* Selection */
+.milkdown-editor-wrapper .milkdown ::selection {
+  background: hsl(var(--primary) / 0.3);
+}
+
+/* Placeholder */
+.milkdown-editor-wrapper .milkdown .editor-placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Cursor */
+.milkdown-editor-wrapper .milkdown .ProseMirror-focused {
+  outline: none;
+}
+
+/* Toolbar button hover states */
+.editor-toolbar button:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.editor-toolbar button.active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
