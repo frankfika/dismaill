@@ -18,10 +18,8 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'electron',
-      use: {
-        // Electron-specific settings will be configured in tests
-      },
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
   timeout: 60000,
