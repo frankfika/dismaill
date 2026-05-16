@@ -2,7 +2,7 @@
  * Smoke Tests - 验证所有页面能正常渲染
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import React from 'react'
 
@@ -56,9 +56,14 @@ import Settings from '../../src/renderer/src/routes/Settings'
 import Layout from '../../src/renderer/src/components/Layout'
 import { useEmailStore } from '../../src/renderer/src/stores/email.store'
 
+const routerFuture = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+}
+
 const renderWithRouter = (component: React.ReactElement, route = '/') => {
   return render(
-    <MemoryRouter initialEntries={[route]}>
+    <MemoryRouter initialEntries={[route]} future={routerFuture}>
       {component}
     </MemoryRouter>
   )
@@ -110,13 +115,17 @@ describe('Smoke Tests - 页面渲染', () => {
   })
 
   describe('Inbox 页面', () => {
-    it('应该渲染收件箱标题', () => {
-      renderWithRouter(<Inbox />)
+    it('应该渲染收件箱标题', async () => {
+      await act(async () => {
+        renderWithRouter(<Inbox />)
+      })
       expect(screen.getByText('收件箱')).toBeInTheDocument()
     })
 
-    it('应该显示空状态', () => {
-      renderWithRouter(<Inbox />)
+    it('应该显示空状态', async () => {
+      await act(async () => {
+        renderWithRouter(<Inbox />)
+      })
       // After loading completes, should show empty state or loading
       expect(screen.getByText('收件箱')).toBeInTheDocument()
     })
@@ -190,12 +199,14 @@ describe('Smoke Tests - 页面渲染', () => {
   })
 
   describe('Layout 组件', () => {
-    it('应该渲染侧边栏导航', () => {
-      render(
-        <MemoryRouter initialEntries={['/inbox']}>
-          <Layout />
-        </MemoryRouter>
-      )
+    it('应该渲染侧边栏导航', async () => {
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={['/inbox']} future={routerFuture}>
+            <Layout />
+          </MemoryRouter>
+        )
+      })
       expect(screen.getByText('Aura')).toBeInTheDocument()
       expect(screen.getByText('收件箱')).toBeInTheDocument()
       expect(screen.getByText('写邮件')).toBeInTheDocument()
@@ -212,26 +223,34 @@ describe('Smoke Tests - 页面渲染', () => {
 describe('Smoke Tests - 新增页面元素', () => {
   describe('Inbox 新增', () => {
     it('应该显示空状态文本 "暂无邮件"', async () => {
-      renderWithRouter(<Inbox />)
+      await act(async () => {
+        renderWithRouter(<Inbox />)
+      })
       await waitFor(() => {
         expect(screen.getByText('暂无邮件')).toBeInTheDocument()
       })
     })
 
     it('应该显示空状态提示 "请先添加邮箱账户"', async () => {
-      renderWithRouter(<Inbox />)
+      await act(async () => {
+        renderWithRouter(<Inbox />)
+      })
       await waitFor(() => {
         expect(screen.getByText('请先添加邮箱账户')).toBeInTheDocument()
       })
     })
 
-    it('应该显示刷新按钮', () => {
-      renderWithRouter(<Inbox />)
+    it('应该显示刷新按钮', async () => {
+      await act(async () => {
+        renderWithRouter(<Inbox />)
+      })
       expect(screen.getByTitle('刷新')).toBeInTheDocument()
     })
 
-    it('应该显示占位文本 "选择一封邮件查看详情"', () => {
-      renderWithRouter(<Inbox />)
+    it('应该显示占位文本 "选择一封邮件查看详情"', async () => {
+      await act(async () => {
+        renderWithRouter(<Inbox />)
+      })
       expect(screen.getByText('选择一封邮件查看详情')).toBeInTheDocument()
     })
   })

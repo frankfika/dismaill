@@ -38,8 +38,7 @@ export function MilkdownEditor({
           onChangeRef.current(markdown)
         })
       })
-      // @ts-expect-error milkdown theme-nord has a version mismatch with core ctx types
-      .config(nord)
+      .config(nord as unknown as (ctx: never) => void)
       .use(commonmark)
       .use(gfm)
       .use(history)

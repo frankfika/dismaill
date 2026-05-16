@@ -43,9 +43,14 @@ vi.mock('@milkdown/plugin-listener', () => ({ listener: {}, listenerCtx: { markd
 
 import Compose from '../../../src/renderer/src/routes/Compose'
 
+const routerFuture = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+}
+
 const renderWithRouter = (component: React.ReactElement, route = '/compose') => {
   return render(
-    <MemoryRouter initialEntries={[route]}>
+    <MemoryRouter initialEntries={[route]} future={routerFuture}>
       {component}
     </MemoryRouter>
   )
