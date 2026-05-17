@@ -1,7 +1,7 @@
 {
-  "name": "dismail",
+  "name": "novamail",
   "version": "1.0.0",
-  "description": "Aura - Decentralized AI Email Client",
+  "description": "NovaMail - Next-Gen AI Email Client",
   "type": "module",
   "scripts": {
     "dev": "vite",

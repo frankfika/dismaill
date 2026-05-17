@@ -1,17 +1,17 @@
-<!-- Generated with claude-code, do not edit directly -->
+<!-- Generated with claude-code -->
 
-# Aura
+# NovaMail
 
 <p align="center">
-  <img src="./docs/assets/inbox.png" alt="Aura" width="100%" style="border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" />
+  <img src="./docs/assets/inbox.png" alt="NovaMail" width="100%" style="border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" />
 </p>
 
 <p align="center">
-  <strong>Decentralized AI Email Client · 去中心化 AI 邮箱客户端</strong>
+  <strong>Next-Gen AI Email Client · 新一代 AI 邮箱客户端</strong>
 </p>
 
 <p align="center">
-  Wallet Sign-In · Multi-Email · AI Assistant · Offline-First
+  Wallet Sign-In · Unified Inbox · AI Assistant · Privacy First
 </p>
 
 <p align="center">
@@ -25,17 +25,17 @@
 
 ---
 
-## ✨ Features
+## ✨ Core Features
 
-### 1. Wallet Identity Sign-In
+### 1. Wallet Identity
 
 <div align="center">
 
 | Feature | Description |
 |:--------|:------------|
-| 🔑 MetaMask / WalletConnect | One-click connection to major wallets |
-| 🦄 ENS Domain Resolution | Auto-resolve wallet addresses to ENS names |
-| 🔐 Signature Verification | Passwordless, phishing-proof authentication |
+| 🔑 MetaMask / WalletConnect | One-click wallet connection |
+| 🦄 ENS Domain Resolution | Auto-resolve wallet to ENS names |
+| 🔐 Signature Verification | Passwordless, phishing-proof |
 | 📤 One-Click Restore | Recover all configs with wallet signature |
 
 </div>
@@ -44,7 +44,7 @@
   <img src="./docs/assets/login.png" alt="Login" width="60%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);" />
 </p>
 
-### 2. Unified Multi-Email Management
+### 2. Unified Inbox
 
 <div align="center">
 
@@ -61,32 +61,32 @@
   <img src="./docs/assets/inbox.png" alt="Inbox" width="60%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);" />
 </p>
 
-### 3. AI Smart Assistant
+### 3. AI Assistant
 
 - 🤖 **AI-Assisted Writing** — Preset agents + prompt templates + conversational refinement
 - 🏷️ **Smart Tags** — AI auto-classification with Few-shot learning
 - 📁 **Smart Folders** — Tag-based email aggregation
-- 🌐 **Multi-Provider** — Anthropic / OpenAI / Custom
+- 🌐 **Multi-Provider** — Anthropic / OpenAI / Custom AI
 
 <p align="center">
   <img src="./docs/assets/compose.png" alt="Compose" width="60%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);" />
 </p>
 
-### 4. Web3 Social Features
+### 4. Privacy First
 
-- 💬 **XMTP Wallet Chat** — End-to-end encrypted, wallet address based
+- 💬 **XMTP End-to-End Encryption** — Wallet identity, only you can read your messages
 - 🔗 **ENS Contact Discovery** — Find and connect friends via ENS domains
-- 🌐 **Decentralized Identity** — Your wallet is your identity
+- 💾 **Local Encrypted Storage** — All data encrypted locally, no third-party
 
 <p align="center">
   <img src="./docs/assets/chat.png" alt="Chat" width="60%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);" />
 </p>
 
-### 5. Offline-First Architecture
+### 5. Offline-First
 
 - 📴 **Local-First** — Core features work without internet
-- 🔄 **Offline Queue** — Emails composed offline auto-queue and send when online
-- 💾 **SQLite Local Storage** — All data encrypted locally
+- 🔄 **Offline Queue** — Emails auto-queue when offline, send when online
+- ⚡ **Lightning Fast** — SQLite local cache, millisecond loading
 
 ---
 
@@ -100,7 +100,7 @@
 | pnpm | ≥ 9.x |
 | Python | ≥ 3.10 |
 
-### Installation
+### Run from Source
 
 ```bash
 # Clone project
@@ -119,10 +119,9 @@ pnpm dev
 ### Environment Variables
 
 ```bash
-# Copy environment template
 cp .env.example .env.local
 
-# Edit .env.local with your configs
+# Edit .env.local
 VITE_DEFAULT_AI_PROVIDER=openai
 VITE_XMTP_ENV=production
 VITE_INFURA_PROJECT_ID=your-infura-project-id
@@ -136,23 +135,23 @@ VITE_INFURA_PROJECT_ID=your-infura-project-id
 
 | Architecture | Download |
 |:-------------|:---------|
-| Apple Silicon (M1/M2/M3) | [Aura_1.0.0_aarch64.dmg](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_aarch64.dmg) |
-| Intel | [Aura_1.0.0_x64.dmg](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_x64.dmg) |
+| Apple Silicon (M1/M2/M3) | [NovaMail_1.0.0_aarch64.dmg](https://github.com/frankfika/dismaill/releases/latest/download/NovaMail_1.0.0_aarch64.dmg) |
+| Intel | [NovaMail_1.0.0_x64.dmg](https://github.com/frankfika/dismaill/releases/latest/download/NovaMail_1.0.0_x64.dmg) |
 
 ### Windows
 
 | Package Format | Download |
 |:---------------|:---------|
-| NSIS Installer | [Aura_1.0.0_x64-setup.exe](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_x64-setup.exe) |
-| MSI Package | [Aura_1.0.0_x64_en-US.msi](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_x64_en-US.msi) |
+| NSIS Installer | [NovaMail_1.0.0_x64-setup.exe](https://github.com/frankfika/dismaill/releases/latest/download/NovaMail_1.0.0_x64-setup.exe) |
+| MSI Package | [NovaMail_1.0.0_x64_en-US.msi](https://github.com/frankfika/dismaill/releases/latest/download/NovaMail_1.0.0_x64_en-US.msi) |
 
 ### Linux
 
 | Distribution | Download |
 |:-------------|:---------|
-| Debian / Ubuntu | [Aura_1.0.0_amd64.deb](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_amd64.deb) |
-| Fedora / RHEL | [Aura-1.0.0-1.x86_64.rpm](https://github.com/frankfika/dismaill/releases/latest/download/Aura-1.0.0-1.x86_64.rpm) |
-| AppImage | [Aura_1.0.0_amd64.AppImage](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_amd64.AppImage) |
+| Debian / Ubuntu | [NovaMail_1.0.0_amd64.deb](https://github.com/frankfika/dismaill/releases/latest/download/NovaMail_1.0.0_amd64.deb) |
+| Fedora / RHEL | [NovaMail-1.0.0-1.x86_64.rpm](https://github.com/frankfika/dismaill/releases/latest/download/NovaMail-1.0.0-1.x86_64.rpm) |
+| AppImage | [NovaMail_1.0.0_amd64.AppImage](https://github.com/frankfika/dismaill/releases/latest/download/NovaMail_1.0.0_amd64.AppImage) |
 
 > 📌 View all releases: [Release Page](https://github.com/frankfika/dismaill/releases)
 
@@ -172,8 +171,7 @@ VITE_INFURA_PROJECT_ID=your-infura-project-id
 | State Management | **Zustand** | Lightweight state |
 | Data Fetching | **TanStack Query** | Powerful data sync |
 | Wallet Integration | **Wagmi v2 + Viem v2 + RainbowKit** | Web3 wallet connection |
-| Email Sending | **Nodemailer** | SMTP email delivery |
-| Email Receiving | **Imapflow** | IMAP email sync |
+| Email | **Nodemailer + Imapflow** | SMTP/IMAP full protocol support |
 | Local Database | **better-sqlite3** | SQLite local storage |
 | Markdown | **Milkdown** | WYSIWYG editor |
 | AI SDK | **Vercel AI SDK** | Multi-provider AI support |
@@ -187,7 +185,7 @@ VITE_INFURA_PROJECT_ID=your-infura-project-id
 src/
 ├── main/                         # Tauri main process
 │   ├── index.ts                 # Main entry
-│   ├── ipc/                     # IPC Handler layer
+│   ├── ipc/                     # IPC Handler
 │   │   ├── auth.handler.ts      # Authentication
 │   │   ├── email.handler.ts     # Email operations
 │   │   └── ai.handler.ts        # AI operations
@@ -202,33 +200,13 @@ src/
 │
 ├── renderer/                    # React renderer process
 │   ├── src/
-│   │   ├── routes/              # Page routes (Login, Inbox, Compose, Settings, Chat)
+│   │   ├── routes/              # Page routes
 │   │   ├── components/          # UI components
-│   │   │   ├── ui/             # Shadcn base components
-│   │   │   ├── wallet/          # Wallet components
-│   │   │   └── editor/          # Markdown editor
 │   │   ├── stores/              # Zustand stores
 │   │   └── lib/                 # Utilities
 │   └── index.html
 │
-└── shared/                      # Shared code
-    ├── types/                   # TypeScript types
-    └── constants/               # Constants
-```
-
-### IPC Communication
-
-All IPC calls use a unified response format:
-
-```typescript
-interface IpcResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;      // Error code like AUTH_WALLET_REJECTED
-    message: string;  // User-friendly error message
-  };
-}
+└── shared/                      # Shared types and constants
 ```
 
 ---
@@ -236,20 +214,11 @@ interface IpcResponse<T> {
 ## 🧪 Testing
 
 ```bash
-# Unit tests
-pnpm test
-
-# Type check
-pnpm typecheck
-
-# ESLint
-pnpm lint
-
-# E2E tests
-pnpm test:e2e
-
-# Run all tests
-pnpm test:all
+pnpm test        # Unit tests
+pnpm typecheck   # Type check
+pnpm lint        # ESLint
+pnpm test:e2e    # E2E tests
+pnpm test:all    # Run all tests
 ```
 
 ---
@@ -258,40 +227,31 @@ pnpm test:all
 
 | Version | Status | Features |
 |:--------|:-------|:---------|
-| **v1.0** | ✅ Done | Wallet sign-in, email send/receive, signature management, offline support |
+| **v1.0** | ✅ Done | Wallet sign-in, email send/receive, offline support |
 | **v1.5** | 🚧 In Progress | AI-assisted writing, smart tags, smart folders |
-| **v2.0** | 📋 Planned | ENS chat, wallet chat, enterprise features, plugin ecosystem |
+| **v2.0** | 📋 Planned | ENS chat, wallet chat, plugin ecosystem |
 
 ---
 
 ## 🤝 Contributing
 
-1. **Fork** the project
+1. Fork the project
 2. Create feature branch: `git checkout -b feature/amazing-feature`
 3. Commit changes: `git commit -m 'Add amazing feature'`
 4. Push to branch: `git push origin feature/amazing-feature`
-5. Create **Pull Request**
-
-### Pre-submit Checklist
-
-```bash
-pnpm lint      # ESLint check
-pnpm typecheck # TypeScript check
-pnpm test      # Run tests
-```
+5. Create Pull Request
 
 ---
 
 ## 📄 License
 
-This project is **MIT License** open source.
+MIT License
 
 ---
 
 ## 🔗 Links
 
 - 🌐 Project: https://github.com/frankfika/dismaill
-- 📖 Documentation: https://github.com/frankfika/dismaill/blob/main/README.md
 - 🐛 Issues: https://github.com/frankfika/dismaill/issues
 - 📦 Downloads: https://github.com/frankfika/dismaill/releases
 
