@@ -1,108 +1,106 @@
-<div align="center">
+<!-- Generated with claude-code, do not edit directly -->
 
 # Aura
-> Decentralized AI Email Client · 去中心化 AI 邮箱客户端
 
-![Main Interface](./docs/assets/inbox.png)
+<p align="center">
+  <img src="./docs/assets/inbox.png" alt="Aura" width="100%" style="border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" />
+</p>
 
-### Wallet-Based Sign-In · Multi-Email Management · AI-Powered Assistant
+<p align="center">
+  <strong>Decentralized AI Email Client · 去中心化 AI 邮箱客户端</strong>
+</p>
 
-[![Version](https://img.shields.io/badge/Version-1.0.4-blue?style=flat-square)](https://github.com/frankfika/dismaill/releases)
-[![Platform](https://img.shields.io/badge/Platform-macOS|Windows|Linux-green?style=flat-square)](https://github.com/frankfika/dismaill)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)](LICENSE)
+<p align="center">
+  Wallet Sign-In · Multi-Email · AI Assistant · Offline-First
+</p>
 
-[Features](#-features) • [Screenshots](#-screenshots) • [Quick Start](#-quick-start) • [Download](#-download) • [Architecture](#-architecture)
+<p align="center">
 
-[简体中文](./README.md) | __English__
+[![Version](https://img.shields.io/badge/Version-1.0.4-blue?style=flat-square&color=3B82F6)](https://github.com/frankfika/dismaill/releases)
+[![Platform](https://img.shields.io/badge/Platform-macOS%7CWindows%7CLinux-green?style=flat-square&color=10B981)](https://github.com/frankfika/dismaill)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square&color=6B7280)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/frankfika/dismaill?style=flat-square&color=F59E0B)](https://github.com/frankfika/dismaill/stargazers)
+
+</p>
 
 ---
-</div>
 
-## Introduction
-
-Aura is the **first wallet-anchored** AI-native email client, featuring:
-
-- **Wallet Sign-In** — Use wallet signatures instead of passwords, restore all configs with one click
-- **Multi-Email Management** — Support Gmail, Outlook, iCloud, and custom SMTP/IMAP
-- **AI-Assisted Writing** — Preset agents + prompt templates + conversational optimization
-- **Offline-First Architecture** — Local-First, core features work without internet
-- **ENS Domain Resolution** — Discover contacts via ENS domain names
-- **XMTP Wallet Chat** — End-to-end encrypted messaging via wallet addresses
-
-### Why Aura?
-
-| Traditional Email | Aura |
-|-----------------|------|
-| Passwords are vulnerable | Wallet signatures, phishing-proof |
-| Multiple accounts are hard to manage | Wallet identity anchor, one-click switching |
-| Manual email organization | AI auto-classification and tagging |
-| Centralized services | Decentralized identity, data ownership |
-
-## Features
+## ✨ Features
 
 ### 1. Wallet Identity Sign-In
 
-- MetaMask and WalletConnect support
-- Wallet signature verification, no passwords needed
-- ENS domain automatic resolution and display
-- One-click restore all email configurations
+<div align="center">
 
-![Login](./docs/assets/login.png)
+| Feature | Description |
+|:--------|:------------|
+| 🔑 MetaMask / WalletConnect | One-click connection to major wallets |
+| 🦄 ENS Domain Resolution | Auto-resolve wallet addresses to ENS names |
+| 🔐 Signature Verification | Passwordless, phishing-proof authentication |
+| 📤 One-Click Restore | Recover all configs with wallet signature |
+
+</div>
+
+<p align="center">
+  <img src="./docs/assets/login.png" alt="Login" width="60%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);" />
+</p>
 
 ### 2. Unified Multi-Email Management
 
-- Gmail / Outlook / iCloud / Custom SMTP/IMAP
-- Unified inbox aggregation view
-- Email account grouping
-- Offline email queue, compose even without connection
+<div align="center">
 
-![Inbox](./docs/assets/inbox.png)
+| Email Service | Support |
+|:--------------|:--------|
+| Gmail / Google Workspace | ✅ Full Support |
+| Outlook / Microsoft 365 | ✅ Full Support |
+| iCloud / Apple Mail | ✅ Full Support |
+| Custom SMTP/IMAP | ✅ Full Support |
 
-### 3. Markdown Email Editor
+</div>
 
-- Milkdown WYSIWYG editor
-- Native code highlighting, tables, and lists
-- Signature template management
-- Image paste and drag-and-drop support
+<p align="center">
+  <img src="./docs/assets/inbox.png" alt="Inbox" width="60%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);" />
+</p>
 
-![Compose](./docs/assets/compose.png)
+### 3. AI Smart Assistant
 
-### 4. AI Smart Assistant
+- 🤖 **AI-Assisted Writing** — Preset agents + prompt templates + conversational refinement
+- 🏷️ **Smart Tags** — AI auto-classification with Few-shot learning
+- 📁 **Smart Folders** — Tag-based email aggregation
+- 🌐 **Multi-Provider** — Anthropic / OpenAI / Custom
 
-- AI-assisted email writing and refinement
-- Smart tag auto-classification
-- Smart folder aggregation
-- Support for Anthropic / OpenAI providers
+<p align="center">
+  <img src="./docs/assets/compose.png" alt="Compose" width="60%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);" />
+</p>
 
-### 5. Web3 Social Features
+### 4. Web3 Social Features
 
-- ENS domain contact discovery
-- XMTP wallet end-to-end encrypted chat
-- Decentralized identity system
+- 💬 **XMTP Wallet Chat** — End-to-end encrypted, wallet address based
+- 🔗 **ENS Contact Discovery** — Find and connect friends via ENS domains
+- 🌐 **Decentralized Identity** — Your wallet is your identity
 
-![Chat](./docs/assets/chat.png)
+<p align="center">
+  <img src="./docs/assets/chat.png" alt="Chat" width="60%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);" />
+</p>
 
-## Screenshots
+### 5. Offline-First Architecture
 
-| Login | Inbox | Compose |
-|:------:|:------:|:--------:|
-| ![Login](./docs/assets/login.png) | ![Inbox](./docs/assets/inbox.png) | ![Compose](./docs/assets/compose.png) |
+- 📴 **Local-First** — Core features work without internet
+- 🔄 **Offline Queue** — Emails composed offline auto-queue and send when online
+- 💾 **SQLite Local Storage** — All data encrypted locally
 
-| Settings | Chat |
-|:------:|:---:|
-| ![Settings](./docs/assets/settings.png) | ![Chat](./docs/assets/chat.png) |
+---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Requirements
 
 | Tool | Version |
-|------|---------|
-| Node.js | >= 20 LTS |
-| pnpm | >= 9.x |
-| Python | >= 3.10 |
+|:-----|:--------:|
+| Node.js | ≥ 20 LTS |
+| pnpm | ≥ 9.x |
+| Python | ≥ 3.10 |
 
-### Run from Source
+### Installation
 
 ```bash
 # Clone project
@@ -114,84 +112,108 @@ pnpm install
 
 # Start development server
 pnpm dev
+
+# Open http://localhost:1420
 ```
 
 ### Environment Variables
 
 ```bash
+# Copy environment template
 cp .env.example .env.local
-```
 
-Edit `.env.local`:
-
-```bash
-# AI Provider
+# Edit .env.local with your configs
 VITE_DEFAULT_AI_PROVIDER=openai
-
-# XMTP Environment
 VITE_XMTP_ENV=production
-
-# Ethereum RPC
 VITE_INFURA_PROJECT_ID=your-infura-project-id
 ```
 
-## Download
+---
+
+## 📥 Download
 
 ### macOS
 
-- Apple Silicon: [Aura_1.0.0_aarch64.dmg](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_aarch64.dmg)
-- Intel: [Aura_1.0.0_x64.dmg](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_x64.dmg)
+| Architecture | Download |
+|:-------------|:---------|
+| Apple Silicon (M1/M2/M3) | [Aura_1.0.0_aarch64.dmg](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_aarch64.dmg) |
+| Intel | [Aura_1.0.0_x64.dmg](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_x64.dmg) |
 
 ### Windows
 
-- Installer: [Aura_1.0.0_x64-setup.exe](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_x64-setup.exe)
-- MSI: [Aura_1.0.0_x64_en-US.msi](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_x64_en-US.msi)
+| Package Format | Download |
+|:---------------|:---------|
+| NSIS Installer | [Aura_1.0.0_x64-setup.exe](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_x64-setup.exe) |
+| MSI Package | [Aura_1.0.0_x64_en-US.msi](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_x64_en-US.msi) |
 
 ### Linux
 
-- Debian/Ubuntu: [Aura_1.0.0_amd64.deb](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_amd64.deb)
-- Fedora/RHEL: [Aura-1.0.0-1.x86_64.rpm](https://github.com/frankfika/dismaill/releases/latest/download/Aura-1.0.0-1.x86_64.rpm)
-- AppImage: [Aura_1.0.0_amd64.AppImage](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_amd64.AppImage)
+| Distribution | Download |
+|:-------------|:---------|
+| Debian / Ubuntu | [Aura_1.0.0_amd64.deb](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_amd64.deb) |
+| Fedora / RHEL | [Aura-1.0.0-1.x86_64.rpm](https://github.com/frankfika/dismaill/releases/latest/download/Aura-1.0.0-1.x86_64.rpm) |
+| AppImage | [Aura_1.0.0_amd64.AppImage](https://github.com/frankfika/dismaill/releases/latest/download/Aura_1.0.0_amd64.AppImage) |
 
-View all releases: [Release Page](https://github.com/frankfika/dismaill/releases)
+> 📌 View all releases: [Release Page](https://github.com/frankfika/dismaill/releases)
 
-## Architecture
+---
+
+## 🏗️ Architecture
 
 ### Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Desktop Framework | Tauri v2 |
-| Frontend | React 18 + TypeScript |
-| UI | Shadcn/UI + TailwindCSS |
-| State Management | Zustand |
-| Data Fetching | TanStack Query |
-| Wallet Integration | Wagmi v2 + Viem v2 + RainbowKit |
-| Email Sending | Nodemailer + Imapflow |
-| Local Database | better-sqlite3 |
-| Markdown | Milkdown |
-| AI SDK | Vercel AI SDK |
-| Chat Protocol | @xmtp/xmtp-js |
+<div align="center">
+
+| Category | Technology | Description |
+|:---------|:-----------|:------------|
+| Desktop Framework | **Tauri v2** | Lightweight, secure, cross-platform |
+| Frontend | **React 18 + TypeScript** | Modern reactive UI |
+| UI Components | **Shadcn/UI + TailwindCSS** | Clean component library |
+| State Management | **Zustand** | Lightweight state |
+| Data Fetching | **TanStack Query** | Powerful data sync |
+| Wallet Integration | **Wagmi v2 + Viem v2 + RainbowKit** | Web3 wallet connection |
+| Email Sending | **Nodemailer** | SMTP email delivery |
+| Email Receiving | **Imapflow** | IMAP email sync |
+| Local Database | **better-sqlite3** | SQLite local storage |
+| Markdown | **Milkdown** | WYSIWYG editor |
+| AI SDK | **Vercel AI SDK** | Multi-provider AI support |
+| Chat Protocol | **@xmtp/xmtp-js** | XMTP end-to-end encryption |
+
+</div>
 
 ### Project Structure
 
 ```
 src/
-├── main/                    # Tauri main process
-│   ├── index.ts             # Main entry
-│   ├── ipc/                 # IPC Handlers
-│   ├── services/            # Business logic
-│   └── database/            # SQLite database
+├── main/                         # Tauri main process
+│   ├── index.ts                 # Main entry
+│   ├── ipc/                     # IPC Handler layer
+│   │   ├── auth.handler.ts      # Authentication
+│   │   ├── email.handler.ts     # Email operations
+│   │   └── ai.handler.ts        # AI operations
+│   ├── services/                # Business logic layer
+│   │   ├── auth.service.ts      # Auth service
+│   │   ├── email.service.ts     # Email service
+│   │   └── ai.service.ts        # AI service
+│   └── database/                # Data layer
+│       ├── db.ts                # SQLite connection
+│       ├── migrations/          # DB migrations
+│       └── repositories/        # Data access
 │
-├── renderer/                # React renderer process
+├── renderer/                    # React renderer process
 │   ├── src/
-│   │   ├── routes/          # Page routes
-│   │   ├── components/       # UI components
-│   │   ├── stores/          # Zustand stores
-│   │   └── lib/             # Utilities
+│   │   ├── routes/              # Page routes (Login, Inbox, Compose, Settings, Chat)
+│   │   ├── components/          # UI components
+│   │   │   ├── ui/             # Shadcn base components
+│   │   │   ├── wallet/          # Wallet components
+│   │   │   └── editor/          # Markdown editor
+│   │   ├── stores/              # Zustand stores
+│   │   └── lib/                 # Utilities
 │   └── index.html
 │
-└── shared/                  # Shared types and constants
+└── shared/                      # Shared code
+    ├── types/                   # TypeScript types
+    └── constants/               # Constants
 ```
 
 ### IPC Communication
@@ -203,21 +225,15 @@ interface IpcResponse<T> {
   success: boolean;
   data?: T;
   error?: {
-    code: string;
-    message: string;
+    code: string;      // Error code like AUTH_WALLET_REJECTED
+    message: string;  // User-friendly error message
   };
 }
 ```
 
-## Roadmap
+---
 
-| Version | Features |
-|---------|----------|
-| v1.0 | Wallet sign-in, email send/receive, signature management, offline support |
-| v1.5 | AI-assisted writing, smart tags, smart folders |
-| v2.0 | ENS chat, wallet chat, enterprise features, plugin ecosystem |
-
-## Testing
+## 🧪 Testing
 
 ```bash
 # Unit tests
@@ -236,27 +252,53 @@ pnpm test:e2e
 pnpm test:all
 ```
 
-## CI/CD
+---
 
-GitHub Actions for continuous integration:
+## 📈 Roadmap
 
-- **Push** to main/develop branches triggers auto-run
-- **PR** auto-runs lint + typecheck + unit tests
-- **Release** auto-builds for all platforms
+| Version | Status | Features |
+|:--------|:-------|:---------|
+| **v1.0** | ✅ Done | Wallet sign-in, email send/receive, signature management, offline support |
+| **v1.5** | 🚧 In Progress | AI-assisted writing, smart tags, smart folders |
+| **v2.0** | 📋 Planned | ENS chat, wallet chat, enterprise features, plugin ecosystem |
 
-## Contributing
+---
 
-1. Fork the project
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Create Pull Request
+## 🤝 Contributing
 
-## License
+1. **Fork** the project
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Create **Pull Request**
 
-MIT License
+### Pre-submit Checklist
 
-## Contact
+```bash
+pnpm lint      # ESLint check
+pnpm typecheck # TypeScript check
+pnpm test      # Run tests
+```
 
-- GitHub Issues: https://github.com/frankfika/dismaill/issues
-- Website: https://aura.email (coming soon)
+---
+
+## 📄 License
+
+This project is **MIT License** open source.
+
+---
+
+## 🔗 Links
+
+- 🌐 Project: https://github.com/frankfika/dismaill
+- 📖 Documentation: https://github.com/frankfika/dismaill/blob/main/README.md
+- 🐛 Issues: https://github.com/frankfika/dismaill/issues
+- 📦 Downloads: https://github.com/frankfika/dismaill/releases
+
+---
+
+<p align="center">
+
+[简体中文](./README.md) | [English](./README_EN.md)
+
+</p>
