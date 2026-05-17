@@ -1,7 +1,7 @@
 {
   "name": "novamail",
   "version": "1.0.0",
-  "description": "NovaMail - Next-Gen AI Email Client",
+  "description": "NovaMail - Next-Gen Email Client",
   "type": "module",
   "scripts": {
     "dev": "vite",
