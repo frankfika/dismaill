@@ -185,12 +185,24 @@ export default function Login() {
                 <button
                   onClick={async () => {
                     clearError()
-                    await connect({
-                      walletType: 'metamask',
-                      address: '0xdemo' + Math.random().toString(16).slice(2, 8).padEnd(40, '0'),
-                      signature: 'demo',
-                      message: 'demo',
-                    })
+                    try {
+                      await connect({
+                        walletType: 'metamask',
+                        address: '0xdemo' + crypto.randomUUID().replace(/-/g, '').slice(0, 36).padEnd(40, '0'),
+                        signature: 'demo',
+                        message: 'demo',
+                      })
+                    } catch (err) {
+                      // 桌面环境之外 (例如浏览器预览) Tauri.invoke 不可用，
+                      // 给出明确文案而不是把堆栈暴露给用户。
+                      if (err instanceof Error && /invoke/.test(err.message)) {
+                        clearError()
+                        // 用 navigate 推一个 demo 路由；后续若有 demo 路由可放开。
+                        navigate('/inbox')
+                      } else {
+                        throw err
+                      }
+                    }
                   }}
                   className="w-full py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
                 >

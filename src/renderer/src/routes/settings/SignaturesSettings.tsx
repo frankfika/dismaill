@@ -4,6 +4,7 @@ import { sanitizeHtml } from '../../lib/utils'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
+import { useDialogDismiss } from '../../hooks/useDialogDismiss'
 import type { EmailAccount } from '@shared/types'
 import { PenTool, Plus, Trash2 } from 'lucide-react'
 
@@ -12,6 +13,8 @@ export function SignaturesSettings({ accounts }: { accounts: EmailAccount[] }) {
   const { signatures, isLoading, createSignature, deleteSignature } = useSignatures(selectedAccountId)
   const [showAddModal, setShowAddModal] = useState(false)
   const [form, setForm] = useState({ name: '', content: '', isDefault: false })
+  const closeAddModal = () => setShowAddModal(false)
+  const addDialogRef = useDialogDismiss(closeAddModal, showAddModal)
 
   useEffect(() => {
     if (!selectedAccountId && accounts[0]) setSelectedAccountId(accounts[0].id)
@@ -113,9 +116,19 @@ export function SignaturesSettings({ accounts }: { accounts: EmailAccount[] }) {
       )}
 
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-signature-title"
+          tabIndex={-1}
+          ref={addDialogRef}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeAddModal()
+          }}
+        >
           <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-lg">
-            <h3 className="text-sm font-semibold text-foreground mb-4">添加签名</h3>
+            <h3 id="add-signature-title" className="text-sm font-semibold text-foreground mb-4">添加签名</h3>
             <div className="space-y-3">
               <div>
                 <Label className="text-xs">签名名称</Label>

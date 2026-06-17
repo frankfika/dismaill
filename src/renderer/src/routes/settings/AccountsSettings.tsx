@@ -3,6 +3,7 @@ import { invokeWrapped, invoke } from '../../lib/ipc'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
+import { useDialogDismiss } from '../../hooks/useDialogDismiss'
 import type { EmailAccount, ProviderPreset } from '@shared/types'
 import { Mail, Plus, Trash2, X, AlertCircle, ExternalLink } from 'lucide-react'
 import { PROVIDER_REGIONS, CUSTOM_PROVIDER, providerIcon } from './constants'
@@ -83,6 +84,7 @@ export function AccountsSettings({ accounts, onUpdate }: { accounts: EmailAccoun
 }
 
 function AddAccountModal({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+  const dialogRef = useDialogDismiss(onClose, true)
   const [presets, setPresets] = useState<ProviderPreset[]>([])
   const [selected, setSelected] = useState<ProviderPreset | null>(null)
   const [form, setForm] = useState({
@@ -215,11 +217,21 @@ function AddAccountModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
   }, [presets])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-account-title"
+      tabIndex={-1}
+      ref={dialogRef}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div className="w-full max-w-2xl rounded-xl border border-border bg-card shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <h3 className="text-base font-semibold text-foreground">添加邮箱账户</h3>
+            <h3 id="add-account-title" className="text-base font-semibold text-foreground">添加邮箱账户</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">
               选一个服务商，配置会自动填好
             </p>

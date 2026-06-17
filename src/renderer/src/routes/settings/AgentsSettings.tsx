@@ -4,6 +4,7 @@ import { useSkills } from '../../hooks/useSkills'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
+import { useDialogDismiss } from '../../hooks/useDialogDismiss'
 import {
   AGENT_ICON_PRESETS,
   STARTER_AGENTS,
@@ -230,6 +231,7 @@ export function AgentEditorModal({
   availableSkills: ReplySkill[]
   onClose: () => void
 }) {
+  const dialogRef = useDialogDismiss(onClose, true)
   const { updateAgent, createAgent } = useAgents()
   const isEdit = !!initial?.id
   const [name, setName] = useState(initial?.name ?? '')
@@ -293,10 +295,20 @@ export function AgentEditorModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="agent-editor-title"
+      tabIndex={-1}
+      ref={dialogRef}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div className="w-full max-w-2xl rounded-xl border border-border bg-card shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between z-10">
-          <h3 className="text-base font-semibold text-foreground">
+          <h3 id="agent-editor-title" className="text-base font-semibold text-foreground">
             {isEdit ? '编辑角色' : '新建角色'}
           </h3>
           <button

@@ -11,6 +11,10 @@ test-results/
 .env.local
 .env.*.local
 src-tauri/target/
+src-tauri/gen/
+*.tsbuildinfo
+.eslintcache
+.vite/
 
 # Local dev artifacts (screenshots, temporary scripts)
 /chat-page.png
