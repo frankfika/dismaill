@@ -1,4 +1,3 @@
-import { vi } from 'vitest'
 import type { Email, EmailAccount, EmailSummary } from '../../src/shared/types/email.types'
 
 let idCounter = 0

@@ -1,182 +1,230 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useConnect, useAccount, useDisconnect, useEnsName, useEnsAvatar } from 'wagmi'
-import { injected, walletConnect, coinbaseWallet } from 'wagmi/connectors'
+import { useSignMessage } from 'wagmi'
 import { useAuthStore } from '../stores/auth.store'
-import { invokeWrapped } from '../lib/ipc'
 import { Button } from '../components/ui/button'
+import { Sparkles, Shield, Zap, ArrowRight } from 'lucide-react'
 
-type WalletType = 'metamask' | 'walletconnect' | 'coinbase'
+type Mode = 'real' | 'demo'
 
-const WALLETS = [
-  { id: 'metamask' as WalletType, name: 'MetaMask', icon: '🦊' },
-  { id: 'walletconnect' as WalletType, name: 'WalletConnect', icon: '🔗' },
-  { id: 'coinbase' as WalletType, name: 'Coinbase Wallet', icon: '💰' },
-]
+const DEMO_MESSAGE =
+  'Welcome to NovaMail. Sign this message to prove you own this wallet. No transaction will be made.'
 
 export default function Login() {
-  const [selectedWallet, setSelectedWallet] = useState<WalletType>('metamask')
-  const { connect, isPending, error: connectError } = useConnect()
-  const { address, isConnected } = useAccount()
-  const { disconnect } = useDisconnect()
-  const { data: ensName } = useEnsName({ address })
-  const { data: ensAvatar } = useEnsAvatar({ name: ensName || undefined })
   const navigate = useNavigate()
-  const { setWallet, isConnecting, setConnecting, setError, error, clearError } = useAuthStore()
+  const { connect, isConnecting, error, clearError, isConnected, wallet } = useAuthStore()
+  const [mode, setMode] = useState<Mode>('demo')
+  const [address, setAddress] = useState<string>('')
+  const [ensName, setEnsName] = useState<string>('')
+  const [step, setStep] = useState<'connect' | 'sign'>('connect')
+  const [demoSig, setDemoSig] = useState<{ signature: string; message: string } | null>(null)
+  const { signMessageAsync, isPending: isSigning } = useSignMessage()
 
+  // In demo mode we just ask the user to type a wallet address and sign
+  // locally. This keeps the app usable without installing MetaMask.
   useEffect(() => {
-    if (isConnected && address) {
-      const syncWallet = async () => {
-        try {
-          setConnecting(true)
-          const response = await invokeWrapped('auth:connect', {
-            walletType: selectedWallet,
-            address,
-            ensName: ensName || undefined,
-            avatarUrl: ensAvatar || undefined,
-          })
-
-          if (response.success && response.data) {
-            setWallet({
-              address,
-              ensName: ensName || undefined,
-              avatarUrl: ensAvatar || undefined,
-            })
-            navigate('/inbox')
-          } else {
-            setError(response.error?.message || 'Failed to sync wallet')
-            disconnect()
-          }
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'Connection failed')
-          disconnect()
-        } finally {
-          setConnecting(false)
-        }
-      }
-      syncWallet()
+    if (isConnected && wallet?.address) {
+      navigate('/inbox')
     }
-  }, [isConnected, address, ensName, ensAvatar, selectedWallet, setWallet, setConnecting, setError, disconnect, navigate])
+  }, [isConnected, wallet?.address, navigate])
 
-  const handleConnect = async () => {
-    clearError()
+  const handleDemoConnect = () => {
+    if (!address.trim()) return
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
+      clearError()
+      // Address validation is only enforced in real mode; demo mode accepts any non-empty input.
+    }
+    setDemoSig({ signature: `demo-sig-${Date.now()}`, message: DEMO_MESSAGE })
+    setStep('sign')
+  }
+
+  const handleDemoSubmit = async () => {
+    if (!demoSig) return
+    await connect({
+      walletType: 'metamask',
+      address: address.trim(),
+      signature: demoSig.signature,
+      message: demoSig.message,
+      ensName: ensName || undefined,
+    })
+  }
+
+  const handleRealConnect = async () => {
+    if (!address.trim() || !/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
+      clearError()
+      // TODO: show inline validation error instead of silent return
+      return
+    }
+    setStep('sign')
     try {
-      let connector
-      switch (selectedWallet) {
-        case 'metamask':
-          connector = injected({ target: 'metaMask' })
-          break
-        case 'walletconnect':
-          connector = walletConnect({
-            projectId: import.meta.env.VITE_WC_PROJECT_ID || 'demo',
-          })
-          break
-        case 'coinbase':
-          connector = coinbaseWallet({ appName: 'Aura Email Client' })
-          break
-      }
-      connect({ connector })
+      const message = DEMO_MESSAGE
+      const signature = await signMessageAsync({ message })
+      await connect({
+        walletType: 'metamask',
+        address: address.trim(),
+        signature,
+        message,
+        ensName: ensName || undefined,
+      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to connect wallet')
+      // wagmi already throws user-facing error
+      console.error('Sign failed:', err)
     }
   }
 
-  const handleSkipLogin = () => navigate('/inbox')
-
-  const truncateAddress = (addr: string) =>
-    `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  const isWorking = isConnecting || isSigning
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-semibold text-primary tracking-tight">Aura</h1>
-          <p className="mt-2 text-sm text-muted-foreground">去中心化 AI 邮箱客户端</p>
+    <div className="min-h-screen bg-background flex items-center justify-center p-8">
+      <div className="w-full max-w-5xl grid gap-12 lg:grid-cols-2 items-center">
+        <div className="space-y-8">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-muted-foreground">
+            <Sparkles size={12} />
+            下一代 AI 邮箱工作台
+          </div>
+
+          <div>
+            <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+              用钱包进入
+              <br />
+              <span className="text-primary">AI 原生邮箱</span>
+            </h1>
+            <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-md">
+              统一管理邮箱、签名、标签、回复技能与 AI 助手。像原生应用一样轻盈，更懂现代工作流。
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            {[
+              { icon: Shield, title: '钱包登录', desc: '签名鉴权，本地加密存储凭证' },
+              { icon: Sparkles, title: 'AI Copilot', desc: '回复技能 + 多模型协作' },
+              { icon: Zap, title: '本地优先', desc: '离线可读，恢复后自动同步' },
+            ].map((item) => (
+              <div key={item.title} className="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
+                <div className="mt-0.5 text-primary">
+                  <item.icon size={16} />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-foreground">{item.title}</div>
+                  <div className="text-sm text-muted-foreground">{item.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Card */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          {isConnected && address ? (
-            <div className="text-center">
-              <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-primary/10 text-primary flex items-center justify-center text-lg font-medium">
-                {(ensName || address).slice(0, 2).toUpperCase()}
+        <div className="w-full max-w-md mx-auto">
+          <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
+            <div className="mb-8 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Sparkles size={24} />
               </div>
-              <h2 className="text-lg font-medium text-foreground mb-1">
-                {ensName || truncateAddress(address)}
-              </h2>
-              <p className="text-sm text-muted-foreground mb-4">钱包已连接</p>
-              {isConnecting ? (
-                <div className="flex items-center justify-center gap-2 text-primary text-sm">
-                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  同步中...
-                </div>
-              ) : (
-                <Button onClick={() => disconnect()} variant="outline" className="w-full">
-                  断开连接
-                </Button>
-              )}
+              <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground">NovaMail</h2>
+              <p className="mt-1 text-sm text-muted-foreground">去中心化 AI 邮箱客户端</p>
             </div>
-          ) : (
-            <>
-              <h2 className="text-base font-medium text-foreground mb-4">选择钱包</h2>
 
-              <div className="space-y-2">
-                {WALLETS.map((wallet) => (
-                  <button
-                    key={wallet.id}
-                    onClick={() => setSelectedWallet(wallet.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border text-sm transition-all ${
-                      selectedWallet === wallet.id
-                        ? 'border-primary bg-primary/5 text-foreground'
-                        : 'border-border hover:border-primary/30 text-foreground'
-                    }`}
-                  >
-                    <span className="text-xl">{wallet.icon}</span>
-                    <span className="font-medium">{wallet.name}</span>
-                    {selectedWallet === wallet.id && (
-                      <span className="ml-auto w-2 h-2 rounded-full bg-primary" />
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {(error || connectError) && (
-                <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
-                  {error || connectError?.message}
-                </div>
-              )}
-
-              <Button
-                onClick={handleConnect}
-                disabled={isPending || isConnecting}
-                className="w-full mt-5"
-              >
-                {isPending || isConnecting ? '连接中...' : '连接钱包'}
-              </Button>
-
+            {/* Mode tabs */}
+            <div className="mb-4 grid grid-cols-2 gap-1 rounded-md border border-border bg-muted/30 p-1 text-xs">
               <button
-                onClick={handleSkipLogin}
-                className="w-full mt-3 py-2 text-muted-foreground hover:text-foreground text-xs transition-colors"
+                onClick={() => {
+                  setMode('demo')
+                  setStep('connect')
+                }}
+                className={`rounded px-2 py-1.5 ${
+                  mode === 'demo' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+                }`}
               >
-                跳过登录，以游客模式体验
+                快速体验（演示模式）
               </button>
-            </>
-          )}
-        </div>
-
-        {/* Features */}
-        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-          {[
-            { label: '钱包登录', desc: '无需密码' },
-            { label: 'AI 辅助', desc: '智能撰写' },
-            { label: '离线可用', desc: '本地优先' },
-          ].map((f) => (
-            <div key={f.label} className="text-muted-foreground">
-              <div className="text-xs font-medium text-foreground">{f.label}</div>
-              <div className="text-xs mt-0.5">{f.desc}</div>
+              <button
+                onClick={() => {
+                  setMode('real')
+                  setStep('connect')
+                }}
+                className={`rounded px-2 py-1.5 ${
+                  mode === 'real' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+                }`}
+              >
+                真实钱包登录
+              </button>
             </div>
-          ))}
+
+            {step === 'connect' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-muted-foreground">钱包地址</label>
+                  <input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="0x…"
+                    className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">ENS（可选）</label>
+                  <input
+                    value={ensName}
+                    onChange={(e) => setEnsName(e.target.value)}
+                    placeholder="yourname.eth"
+                    className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  />
+                </div>
+                {(error) && (
+                  <div className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                    {error}
+                  </div>
+                )}
+                <Button
+                  onClick={mode === 'demo' ? handleDemoConnect : handleRealConnect}
+                  disabled={!address.trim() || isWorking}
+                  className="w-full rounded-md gap-1.5"
+                >
+                  {isWorking ? '处理中…' : '继续'}
+                  <ArrowRight size={14} />
+                </Button>
+                <button
+                  onClick={async () => {
+                    clearError()
+                    await connect({
+                      walletType: 'metamask',
+                      address: '0xdemo' + Math.random().toString(16).slice(2, 8).padEnd(40, '0'),
+                      signature: 'demo',
+                      message: 'demo',
+                    })
+                  }}
+                  className="w-full py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  跳过登录，以游客模式体验
+                </button>
+              </div>
+            )}
+
+            {step === 'sign' && mode === 'demo' && (
+              <div className="space-y-3">
+                <div className="rounded-md border border-border bg-muted/30 p-3">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-1">
+                    待签名消息
+                  </div>
+                  <p className="text-xs text-foreground font-mono leading-relaxed">{DEMO_MESSAGE}</p>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  演示模式：点击下方"完成登录"即可进入应用。真实模式下需用钱包签名。
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setStep('connect')} className="flex-1 rounded-md">
+                    返回
+                  </Button>
+                  <Button
+                    onClick={handleDemoSubmit}
+                    disabled={isWorking}
+                    className="flex-1 rounded-md"
+                  >
+                    {isWorking ? '登录中…' : '完成登录'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

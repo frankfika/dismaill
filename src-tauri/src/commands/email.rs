@@ -5,7 +5,7 @@ use tauri::State;
 use crate::database::repositories::email::EmailRepo;
 use crate::database::SharedPool;
 use crate::error::AppResult;
-use crate::models::{Email, EmailListRequest, EmailSendRequest, EmailSyncOptions, SendResult, SyncResult};
+use crate::models::{Email, EmailListRequest, EmailListResponse, EmailSendRequest, EmailSyncOptions, SendResult, SyncResult};
 use crate::services::auth::AuthService;
 use crate::services::email::EmailService;
 use crate::state::AppState;
@@ -14,23 +14,48 @@ fn pool(state: &State<'_, Arc<AppState>>) -> SharedPool {
     crate::database::init(&state.db_path()).expect("db init")
 }
 
+/// All commands here use **flat top-level args** (camelCase via `rename_all`).
+
 #[tauri::command(rename_all = "camelCase")]
 pub async fn email_send(
-    request: EmailSendRequest,
+    account_id: String,
+    to: Vec<String>,
+    cc: Option<Vec<String>>,
+    bcc: Option<Vec<String>>,
+    subject: String,
+    body: String,
+    body_html: Option<String>,
+    signature_id: Option<String>,
+    reply_to: Option<String>,
+    attachments: Option<Vec<crate::models::EmailAttachment>>,
     state: State<'_, Arc<AppState>>,
 ) -> AppResult<SendResult> {
     let pool = pool(&state);
     let service = EmailService::new(pool);
+    let request = EmailSendRequest {
+        account_id,
+        to,
+        cc,
+        bcc,
+        subject,
+        body,
+        body_html,
+        signature_id,
+        reply_to,
+        attachments,
+    };
     service.send_email(&state, request).await
 }
 
 #[tauri::command(rename_all = "camelCase")]
 pub async fn email_sync(
-    options: EmailSyncOptions,
+    account_id: Option<String>,
+    full_sync: Option<bool>,
     state: State<'_, Arc<AppState>>,
 ) -> AppResult<SyncResult> {
     let pool = pool(&state);
     let service = EmailService::new(pool);
+    let options = EmailSyncOptions { account_id, full_sync };
     service.sync_emails(&state, options).await
 }
 
@@ -41,38 +66,19 @@ pub fn email_list(
     page: u32,
     page_size: u32,
     state: State<'_, Arc<AppState>>,
-) -> AppResult<Vec<Email>> {
+) -> AppResult<EmailListResponse> {
     let _ = AuthService::require_session(&state)?;
     let pool = pool(&state);
     let repo = EmailRepo::new(pool);
     let req = EmailListRequest {
         account_id,
-        folder: folder.clone(),
+        folder,
         tag_id: None,
         query: None,
         page,
         page_size,
     };
-    Ok(repo.list(&req)?.emails.into_iter().map(|s| Email {
-        id: s.id,
-        email_account_id: s.account_id,
-        message_id: s.message_id,
-        folder: folder.clone().unwrap_or_else(|| "INBOX".into()),
-        subject: Some(s.subject.clone()),
-        sender: s.sender.clone(),
-        sender_name: s.sender_name.clone(),
-        recipients_to: None,
-        recipients_cc: None,
-        recipients_bcc: None,
-        body_text: Some(s.snippet.clone()),
-        body_html: None,
-        snippet: Some(s.snippet),
-        received_at: s.received_at,
-        is_read: s.is_read,
-        is_starred: s.is_starred,
-        is_deleted: false,
-        has_attachments: false,
-    }).collect())
+    repo.list(&req)
 }
 
 #[tauri::command(rename_all = "camelCase")]

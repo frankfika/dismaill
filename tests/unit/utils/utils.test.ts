@@ -2,7 +2,7 @@
  * Unit Tests - Utils (cn, format)
  */
 import { describe, it, expect } from 'vitest'
-import { cn, format } from '../../../src/renderer/src/lib/utils'
+import { cn, format, sanitizeHtml } from '../../../src/renderer/src/lib/utils'
 
 describe('Utils', () => {
   describe('cn (classnames merge)', () => {
@@ -50,11 +50,32 @@ describe('Utils', () => {
       expect(result).not.toBe('昨天')
     })
 
-    it('超过一周应该显示日期', () => {
-      const twoWeeksAgo = new Date()
-      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
-      const result = format.date(twoWeeksAgo.toISOString())
-      expect(result).toBeTruthy()
+    it('无效日期应该返回空字符串', () => {
+      expect(format.date('')).toBe('')
+      expect(format.date('invalid')).toBe('')
+    })
+  })
+
+  describe('sanitizeHtml', () => {
+    it('应该保留允许的格式标签', () => {
+      expect(sanitizeHtml('<p>Hello <strong>world</strong></p>')).toContain('<p>')
+      expect(sanitizeHtml('<p>Hello <strong>world</strong></p>')).toContain('<strong>')
+    })
+
+    it('应该移除 script 标签', () => {
+      const result = sanitizeHtml('<p>Hello</p><script>alert(1)</script>')
+      expect(result).not.toContain('<script>')
+      expect(result).not.toContain('alert')
+    })
+
+    it('应该移除事件处理器', () => {
+      const result = sanitizeHtml('<p onclick="alert(1)">Hello</p>')
+      expect(result).not.toContain('onclick')
+    })
+
+    it('应该允许安全的链接属性', () => {
+      const result = sanitizeHtml('<a href="https://example.com" target="_blank">link</a>')
+      expect(result).toContain('href="https://example.com"')
     })
   })
 

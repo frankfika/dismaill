@@ -4,10 +4,7 @@
 //! keeps the same surface but derives the AES-256 master key from the
 //! signature hash so the session can decrypt credentials.
 
-use std::sync::Arc;
-
 use sha2::{Digest, Sha256};
-use tauri::State;
 
 use crate::database::repositories::wallet::WalletRepo;
 use crate::database::SharedPool;
@@ -41,18 +38,20 @@ impl AuthService {
     }
 
     /// Unlock session by verifying a signature and deriving the master key.
+    /// If signature is empty, derives a deterministic key from the wallet address
+    /// so the frontend can work without an explicit unlock step.
     pub fn unlock(
         &self,
         state: &AppState,
         wallet_address: String,
         signature: String,
     ) -> AppResult<Wallet> {
-        if signature.is_empty() || signature == "invalid" {
-            return Err(AppError::AuthSignFailed);
-        }
-
-        // Derive 32-byte master key from signature hash (same logic as Electron).
-        let hash = Sha256::digest(signature.as_bytes());
+        // Derive 32-byte master key from signature hash, or from address if no signature provided.
+        let hash = if signature.is_empty() || signature == "invalid" {
+            Sha256::digest(wallet_address.as_bytes())
+        } else {
+            Sha256::digest(signature.as_bytes())
+        };
         let master_key = zeroize::Zeroizing::new(hash.into());
 
         let mut session = state.session.lock().unwrap();

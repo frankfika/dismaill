@@ -26,7 +26,9 @@ const TAG_LEN: usize = 16;
 type Aes256Gcm16 = AesGcm<Aes256, U16>;
 
 /// SHA-256(signature) -> 32-byte AES key. Matches `deriveKeyFromSignature` in
-/// the Electron CryptoService.
+/// the Electron CryptoService. Currently unused outside tests but kept as the
+/// canonical key-derivation helper.
+#[allow(dead_code)]
 pub fn derive_key_from_signature(signature: &str) -> AppResult<Zeroizing<[u8; 32]>> {
     if signature.len() < 10 {
         return Err(AppError::Crypto("signature too short".into()));

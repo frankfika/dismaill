@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  NovaMail logo
+  - Envelope (email)
+  - Spark / star (AI)
+  - Hex frame hinting at wallet / on-chain identity
+  Color palette: deep indigo → magenta gradient with a mint accent
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="55%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+    <linearGradient id="env" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.98"/>
+      <stop offset="100%" stop-color="#F1F5F9" stop-opacity="0.92"/>
+    </linearGradient>
+    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="100%" stop-color="#F472B6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.6">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="16" y="16" width="480" height="480" rx="112" ry="112" fill="url(#bg)"/>
+
+  <!-- Subtle inner glow -->
+  <rect x="16" y="16" width="480" height="480" rx="112" ry="112" fill="url(#glow)"/>
+
+  <!-- Wallet / on-chain hex hint (background, decorative) -->
+  <g opacity="0.18" fill="none" stroke="#FFFFFF" stroke-width="3">
+    <polygon points="256,90 380,160 380,300 256,370 132,300 132,160"/>
+  </g>
+
+  <!-- Envelope -->
+  <g transform="translate(96 168)">
+    <!-- Body -->
+    <rect x="0" y="0" width="320" height="216" rx="28" ry="28" fill="url(#env)"/>
+    <!-- Flap (triangle) -->
+    <path d="M 0 0 L 160 124 L 320 0 Z" fill="#FFFFFF" fill-opacity="0.5"/>
+    <!-- Bottom seam shadow -->
+    <path d="M 0 216 L 110 132 L 210 132 L 320 216 Z" fill="#0F172A" fill-opacity="0.04"/>
+  </g>
+
+  <!-- Sparkle / AI star (top-right) -->
+  <g transform="translate(326 134)">
+    <!-- Soft glow -->
+    <circle cx="50" cy="50" r="50" fill="#FDE68A" fill-opacity="0.45" filter="url(#soft)"/>
+    <!-- 4-point star -->
+    <path d="M 50 6
+             C 54 36, 64 46, 94 50
+             C 64 54, 54 64, 50 94
+             C 46 64, 36 54, 6 50
+             C 36 46, 46 36, 50 6 Z"
+          fill="url(#spark)"/>
+    <!-- Small accent star -->
+    <path d="M 14 14
+             C 16 22, 18 24, 26 26
+             C 18 28, 16 30, 14 38
+             C 12 30, 10 28, 2 26
+             C 10 24, 12 22, 14 14 Z"
+          fill="#FFFFFF" fill-opacity="0.9"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(256 446)" text-anchor="middle"
+     font-family="-apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif"
+     fill="#FFFFFF">
+    <text font-size="64" font-weight="700" letter-spacing="-2">NovaMail</text>
+  </g>
+</svg>

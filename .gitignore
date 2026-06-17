@@ -4,10 +4,21 @@ out/
 coverage/
 playwright-report/
 test-results/
+.playwright-mcp/
 *.log
 .DS_Store
 .env
 .env.local
 .env.*.local
 src-tauri/target/
+
+# Local dev artifacts (screenshots, temporary scripts)
+/chat-page.png
+/compose-fixed.png
+/compose-fixed2.png
+/compose-page.png
+/inbox-page.png
+/login-page.png
+/settings-page.png
+/tags-page.png
 

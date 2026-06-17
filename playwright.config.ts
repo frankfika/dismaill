@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test'
-import path from 'path'
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -12,6 +11,7 @@ export default defineConfig({
     ['junit', { outputFile: 'test-results/e2e-junit.xml' }],
   ],
   use: {
+    baseURL: 'http://localhost:1420',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
@@ -25,5 +25,11 @@ export default defineConfig({
   timeout: 60000,
   expect: {
     timeout: 10000,
+  },
+  webServer: {
+    command: 'pnpm dev',
+    url: 'http://localhost:1420',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
   },
 })

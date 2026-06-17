@@ -17,6 +17,7 @@ vi.mock('../../../src/renderer/src/lib/ipc', () => ({
 const mockAuthStore = {
   isConnected: false,
   wallet: null as { address: string } | null,
+  getState: () => mockAuthStore,
 }
 
 vi.mock('../../../src/renderer/src/stores/auth.store', () => ({
@@ -74,6 +75,7 @@ describe('useChat', () => {
     })
 
     it('IPC 调用失败时应设置错误', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       mockAuthStore.isConnected = true
       // First call is consumed by initializeChat() in useEffect
       vi.mocked(invoke)
@@ -92,6 +94,7 @@ describe('useChat', () => {
       })
 
       expect(result.current.error).toBe('Network error')
+      errorSpy.mockRestore()
     })
   })
 
@@ -122,27 +125,54 @@ describe('useChat', () => {
       expect(success).toBe(false)
     })
 
-    it('// BUG: sendMessage 创建空 wallet 对象而非从 auth store 读取', async () => {
-      // BUG: useChat.ts:94 - sendMessage 中创建 `wallet = { address: '' }`
-      // 而非从 auth store 获取真实的钱包地址
+    it('sendMessage 应从 auth store 读取钱包地址', async () => {
       mockAuthStore.isConnected = true
       mockAuthStore.wallet = { address: '0xRealAddress' }
 
-      vi.mocked(invoke).mockResolvedValue(undefined as any)
+      vi.mocked(invoke)
+        .mockResolvedValueOnce(undefined as any) // chat:init from useEffect
+        .mockResolvedValueOnce(undefined as any) // chat:send
 
       const { result } = renderHook(() => useChat())
+
+      // Wait for initializeChat() useEffect to complete
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 0))
+      })
 
       await act(async () => {
         await result.current.sendMessage('0x123', 'hello')
       })
 
-      // 验证 bug: 优化后添加的消息应使用真实地址
-      // 但实际代码使用的是空字符串
+      // 修复后: senderAddress 应该是真实钱包地址
       const lastMessage = result.current.messages[result.current.messages.length - 1]
       if (lastMessage) {
-        // BUG: senderAddress 是 '' 而不是 '0xRealAddress'
-        expect(lastMessage.senderAddress).toBe('')
+        expect(lastMessage.senderAddress).toBe('0xRealAddress')
       }
+    })
+
+    it('发送失败时应回滚乐观更新', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      mockAuthStore.isConnected = true
+      mockAuthStore.wallet = { address: '0xRealAddress' }
+
+      vi.mocked(invoke)
+        .mockResolvedValueOnce(undefined as any) // chat:init from useEffect
+        .mockRejectedValueOnce(new Error('Send failed')) // chat:send
+
+      const { result } = renderHook(() => useChat())
+
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 0))
+      })
+
+      await act(async () => {
+        await result.current.sendMessage('0x123', 'hello')
+      })
+
+      expect(result.current.messages).toHaveLength(0)
+      expect(result.current.error).toBe('Send failed')
+      errorSpy.mockRestore()
     })
   })
 
@@ -222,7 +252,11 @@ describe('useChat', () => {
         await result.current.fetchMessages('0x123')
       })
 
-      expect(invoke).toHaveBeenCalledWith('chat:get_messages', { peerAddress: '0x123' })
+      expect(invoke).toHaveBeenCalledWith('chat:get_messages', {
+        conversationId: null,
+        limit: 50,
+        peerAddress: '0x123',
+      })
     })
   })
 })

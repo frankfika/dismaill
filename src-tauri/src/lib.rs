@@ -32,7 +32,14 @@ pub fn run() {
             std::fs::create_dir_all(&app_data_dir).ok();
             tracing::info!(?app_data_dir, "app_data_dir resolved");
 
-            let state = AppState::new(app_data_dir);
+            let state = AppState::new(app_data_dir.clone());
+
+            // Run migrations eagerly so a fresh install picks up the
+            // latest schema before any command is invoked.
+            if let Err(e) = crate::database::init(&state.db_path()) {
+                tracing::error!(error = %e, "database init failed");
+            }
+
             app.manage(Arc::new(state));
             Ok(())
         })
@@ -48,6 +55,8 @@ pub fn run() {
             commands::account::account_update,
             commands::account::account_delete,
             commands::account::account_verify,
+            commands::account::account_list_providers,
+            commands::account::account_detect_provider,
             commands::email::email_send,
             commands::email::email_sync,
             commands::email::email_list,
@@ -59,6 +68,18 @@ pub fn run() {
             commands::signature::signature_list,
             commands::signature::signature_update,
             commands::signature::signature_delete,
+            commands::skill::skill_create,
+            commands::skill::skill_list,
+            commands::skill::skill_get,
+            commands::skill::skill_update,
+            commands::skill::skill_delete,
+            commands::skill::skill_incr_use,
+            commands::agent::agent_create,
+            commands::agent::agent_list,
+            commands::agent::agent_get,
+            commands::agent::agent_update,
+            commands::agent::agent_delete,
+            commands::agent::agent_incr_use,
             commands::ai::ai_generate,
             commands::ai::ai_refine,
             commands::ai::ai_classify_email,
@@ -66,6 +87,7 @@ pub fn run() {
             commands::ai::ai_configure_provider,
             commands::tag::tag_create,
             commands::tag::tag_list,
+            commands::tag::tag_update,
             commands::tag::tag_apply,
             commands::tag::tag_auto_apply,
             commands::tag::tag_smart_folders,

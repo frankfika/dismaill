@@ -41,7 +41,7 @@ export const mockEmailService = {
     }
   }),
 
-  syncEmails: vi.fn(async (options) => {
+  syncEmails: vi.fn(async (_options) => {
     return {
       newCount: 5,
       updatedCount: 2,
@@ -49,7 +49,7 @@ export const mockEmailService = {
     }
   }),
 
-  listEmails: vi.fn(async (options) => {
+  listEmails: vi.fn(async (_options) => {
     return {
       emails: [],
       total: 0,
@@ -65,11 +65,11 @@ export const mockEmailService = {
     }
   }),
 
-  markAsRead: vi.fn(async (ids: string[], isRead: boolean) => {
+  markAsRead: vi.fn(async (ids: string[], _isRead: boolean) => {
     return { updated: ids.length }
   }),
 
-  deleteEmail: vi.fn(async (ids: string[], permanent: boolean) => {
+  deleteEmail: vi.fn(async (ids: string[], _permanent: boolean) => {
     return { deleted: ids.length }
   }),
 }
@@ -152,7 +152,7 @@ export const mockAIService = {
     }
   }),
 
-  classify: vi.fn(async (request) => {
+  classify: vi.fn(async (_request) => {
     return {
       suggestions: [
         {

@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "identifier": "com.aura.email",
   "build": {
-    "beforeDevCommand": "pnpm vite",
+    "beforeDevCommand": "npx vite",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm vite build",
+    "beforeBuildCommand": "npx vite build",
     "frontendDist": "../dist"
   },
   "app": {

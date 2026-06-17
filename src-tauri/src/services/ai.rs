@@ -3,6 +3,7 @@
 //! The Electron version used Vercel AI SDK (OpenAI/Anthropic SDK wrappers).
 //! Tauri side keeps the same JSON contract but makes raw HTTP calls so we
 //! don't need a Node runtime.
+#![allow(dead_code)]
 
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -13,7 +14,7 @@ use serde_json::json;
 use crate::error::{AppError, AppResult};
 use crate::models::{
     AiClassifyRequest, AiClassifyResponse, AiClassifySuggestion, AiGenerateRequest, AiGenerateResponse,
-    AiProvider, AiRefineRequest, AiRefineResponse,
+    AiProvider, AiRefineRequest, AiRefineResponse, ReplyAgent, ReplySkill,
 };
 
 const VALID_ACTIONS: &[&str] = &[
@@ -30,6 +31,70 @@ fn action_prompt(action: &str) -> &'static str {
         "translate" => "Translate this text accurately:",
         _ => "Improve the following text:",
     }
+}
+
+/// Build a system-prompt block that reflects the user-defined agent: name,
+/// description, and core system prompt. The block stands in for the default
+/// "You are a helpful assistant" prelude.
+fn render_agent_block(agent: &ReplyAgent) -> String {
+    let mut s = String::new();
+    s.push_str(&format!("You are {}.\n", agent.name));
+    if !agent.description.is_empty() {
+        s.push_str(&format!("{}\n", agent.description));
+    }
+    if !agent.system_prompt.is_empty() {
+        s.push_str(&agent.system_prompt);
+        s.push('\n');
+    }
+    if !agent.trigger_categories.is_empty() {
+        s.push_str(&format!(
+            "Most useful for emails in these categories: {}\n",
+            agent.trigger_categories.join(", ")
+        ));
+    }
+    s
+}
+
+/// Build a system-prompt fragment that injects a user-trained reply skill
+/// (style controls + few-shot examples) into the AI call. The fragment is
+/// appended to the base system prompt with clear delimiters.
+fn render_skill_block(skill: &ReplySkill) -> String {
+    let mut s = String::new();
+    s.push_str("\n\n─── Reply Skill ─────────────────────\n");
+    s.push_str(&format!("Name: {}\n", skill.name));
+    if !skill.description.is_empty() {
+        s.push_str(&format!("Description: {}\n", skill.description));
+    }
+    s.push_str(&format!("Tone: {}\n", skill.tone));
+    s.push_str(&format!("Language: {}\n", skill.language));
+    s.push_str(&format!("Max length: ~{} characters\n", skill.max_length));
+    s.push_str(&format!(
+        "Include signature: {}\n",
+        if skill.include_signature { "yes" } else { "no" }
+    ));
+    if !skill.trigger_categories.is_empty() {
+        s.push_str(&format!("Use when: {}\n", skill.trigger_categories.join(", ")));
+    }
+    if !skill.system_prompt.is_empty() {
+        s.push_str("\nSkill instructions:\n");
+        s.push_str(&skill.system_prompt);
+        s.push('\n');
+    }
+    if !skill.examples.is_empty() {
+        s.push_str("\nFew-shot examples:\n");
+        for (i, ex) in skill.examples.iter().enumerate() {
+            s.push_str(&format!("\n[Example {}]\n", i + 1));
+            s.push_str(&format!("Incoming: {}\n", ex.incoming));
+            s.push_str(&format!("Reply: {}\n", ex.outgoing));
+        }
+    }
+    if !skill.reply_template.is_empty() {
+        s.push_str("\nReply template / structure:\n");
+        s.push_str(&skill.reply_template);
+        s.push('\n');
+    }
+    s.push_str("──────────────────────────────────────");
+    s
 }
 
 pub struct AiService {
@@ -95,9 +160,16 @@ impl AiService {
             return Err(AppError::AiProviderUnavailable);
         }
 
-        let system = request.agent_id.map(|id| {
+        let mut system = if let Some(agent) = &request.agent {
+            render_agent_block(agent)
+        } else if let Some(id) = &request.agent_id {
             format!("You are an AI email assistant specialized in {}. Help the user write professional and effective emails.", id)
-        }).unwrap_or_else(|| "You are a helpful AI assistant specialized in email composition. Write clear, professional, and effective emails.".into());
+        } else {
+            "You are a helpful AI assistant specialized in email composition. Write clear, professional, and effective emails.".into()
+        };
+        if let Some(skill) = &request.skill {
+            system.push_str(&render_skill_block(skill));
+        }
 
         match provider.as_str() {
             "openai" => self.call_openai(&system, &request.prompt, request.model, request.max_tokens).await,
@@ -125,13 +197,17 @@ impl AiService {
             format!("{}\n\n{}", base, request.content)
         };
 
+        let mut system = if let Some(agent) = &request.agent {
+            render_agent_block(agent)
+        } else {
+            String::from("You are an expert at editing and improving text. Provide high-quality revisions.")
+        };
+        if let Some(skill) = &request.skill {
+            system.push_str(&render_skill_block(skill));
+        }
+
         let resp = self
-            .call_openai(
-                "You are an expert at editing and improving text. Provide high-quality revisions.",
-                &full_prompt,
-                None,
-                None,
-            )
+            .call_openai(&system, &full_prompt, None, None)
             .await?;
 
         Ok(AiRefineResponse {

@@ -19,7 +19,7 @@ interface EmailState {
   error: string | null
 
   // Actions for hooks
-  setEmails: (emails: EmailSummary[]) => void
+  setEmails: (emails: EmailSummary[] | ((prev: EmailSummary[]) => EmailSummary[])) => void
   setLoading: (loading: boolean) => void
   setSyncing: (syncing: boolean) => void
   setError: (error: string | null) => void
@@ -49,7 +49,9 @@ export const useEmailStore = create<EmailState>((set, get) => ({
   error: null,
 
   // Actions for hooks
-  setEmails: (emails) => set({ emails }),
+  setEmails: (emails) => set((state) => ({
+    emails: typeof emails === 'function' ? emails(state.emails) : emails,
+  })),
   setLoading: (isLoading) => set({ isLoading }),
   setSyncing: (isSyncing) => set({ isSyncing }),
   setError: (error) => set({ error }),

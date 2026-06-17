@@ -44,7 +44,7 @@ describe('useSignatures', () => {
         await new Promise(r => setTimeout(r, 0))
       })
 
-      expect(invoke).toHaveBeenCalledWith('signature:list', { accountId: 'acc-1' })
+      expect(invoke).toHaveBeenCalledWith('signature:list', { emailAccountId: 'acc-1' })
       expect(result.current.signatures).toEqual(mockSigs)
     })
   })
@@ -72,7 +72,7 @@ describe('useSignatures', () => {
 
       expect(invoke).toHaveBeenCalledWith('signature:create', expect.objectContaining({
         name: 'Work Sig',
-        accountId: 'acc-1',
+        emailAccountId: 'acc-1',
       }))
       expect(newSig).not.toBeNull()
       expect(newSig.name).toBe('Work Sig')

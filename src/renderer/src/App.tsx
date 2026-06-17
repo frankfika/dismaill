@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { useAuthStore } from './stores/auth.store'
 import Login from './routes/Login'
 import Inbox from './routes/Inbox'
@@ -9,7 +10,11 @@ import Tags from './routes/Tags'
 import Layout from './components/Layout'
 
 function App() {
-  const { isConnected } = useAuthStore()
+  const { isConnected, verifySession } = useAuthStore()
+
+  useEffect(() => {
+    verifySession()
+  }, [verifySession])
 
   return (
     <Routes>

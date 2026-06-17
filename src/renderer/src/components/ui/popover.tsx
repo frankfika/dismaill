@@ -20,10 +20,13 @@ export const Popover: React.FC<PopoverProps> = ({
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : isOpen
 
-  const setOpen = (value: boolean) => {
-    if (!isControlled) setIsOpen(value)
-    onOpenChange?.(value)
-  }
+  const setOpen = React.useCallback(
+    (value: boolean) => {
+      if (!isControlled) setIsOpen(value)
+      onOpenChange?.(value)
+    },
+    [isControlled, onOpenChange],
+  )
 
   const popoverRef = React.useRef<HTMLDivElement>(null)
 
@@ -41,7 +44,7 @@ export const Popover: React.FC<PopoverProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [open])
+  }, [open, setOpen])
 
   const alignClasses = {
     start: 'left-0',

@@ -13,24 +13,28 @@ fn pool(state: &State<'_, Arc<AppState>>) -> SharedPool {
     crate::database::init(&state.db_path()).expect("db init")
 }
 
+/// All commands here use **flat top-level args** (camelCase via `rename_all`).
+
 #[tauri::command(rename_all = "camelCase")]
 pub fn tag_create(
     name: String,
-    color: String,
+    color: Option<String>,
     description: Option<String>,
+    is_ai_enabled: Option<bool>,
     state: State<'_, Arc<AppState>>,
 ) -> AppResult<Tag> {
     let (wallet, _key) = AuthService::require_session(&state)?;
     let pool = pool(&state);
     let repo = TagRepo::new(pool);
     let id = uuid::Uuid::new_v4().to_string();
+    let color = color.unwrap_or_else(|| "#8B5CF6".to_string());
     repo.create(CreateTag {
         id: &id,
         wallet_address: &wallet,
         name: &name,
         color: &color,
         description: description.as_deref(),
-        is_ai_enabled: false,
+        is_ai_enabled: is_ai_enabled.unwrap_or(false),
     })
 }
 
@@ -40,6 +44,29 @@ pub fn tag_list(state: State<'_, Arc<AppState>>) -> AppResult<Vec<Tag>> {
     let pool = pool(&state);
     let repo = TagRepo::new(pool);
     repo.list_by_wallet(&wallet)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn tag_update(
+    id: String,
+    name: Option<String>,
+    color: Option<String>,
+    description: Option<String>,
+    is_ai_enabled: Option<bool>,
+    state: State<'_, Arc<AppState>>,
+) -> AppResult<Tag> {
+    let _ = AuthService::require_session(&state)?;
+    let pool = pool(&state);
+    let repo = TagRepo::new(pool);
+    repo.find_by_id(&id)?
+        .ok_or(crate::error::AppError::Internal("TAG_NOT_FOUND".into()))?;
+    let mut update = crate::database::repositories::tag::UpdateTag::default();
+    if let Some(ref n) = name { update.name = Some(n.as_str()); }
+    if let Some(ref c) = color { update.color = Some(c.as_str()); }
+    if let Some(ref d) = description { update.description = Some(Some(d.as_str())); }
+    if let Some(a) = is_ai_enabled { update.is_ai_enabled = Some(a); }
+    repo.update(&id, update)?;
+    repo.find_by_id(&id)?.ok_or(crate::error::AppError::Internal("TAG_NOT_FOUND".into()))
 }
 
 #[tauri::command(rename_all = "camelCase")]

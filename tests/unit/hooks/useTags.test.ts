@@ -38,7 +38,7 @@ describe('useTags', () => {
       ]
       vi.mocked(invoke).mockResolvedValueOnce(mockTags as any)
 
-      const { result } = renderHook(() => useTags())
+      renderHook(() => useTags())
 
       // useEffect 会自动调用 fetchTags
       await act(async () => {
@@ -92,6 +92,7 @@ describe('useTags', () => {
     })
 
     it('IPC 失败时应返回 null', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       vi.mocked(invoke).mockResolvedValueOnce([] as any) // Initial fetchTags
       vi.mocked(invoke).mockRejectedValueOnce(new Error('Create failed'))
 
@@ -108,47 +109,44 @@ describe('useTags', () => {
 
       expect(newTag).toBeNull()
       expect(result.current.error).toBe('Create failed')
+      errorSpy.mockRestore()
     })
   })
 
   describe('updateTag', () => {
-    it('// BUG: updateTag 仅更新本地状态，不调用后端', async () => {
-      // BUG: useTags.ts:97-121 - updateTag 没有调用任何 IPC
-      // 只是在本地 state 中修改标签数据
+    it('应调用 IPC 更新后端并更新本地状态', async () => {
       const mockTags = [
         { id: '1', name: 'Work', color: '#6366F1', isAiEnabled: false, emailCount: 5, createdAt: '2024-01-01' },
       ]
       vi.mocked(invoke).mockResolvedValueOnce(mockTags as any)
+      vi.mocked(invoke).mockResolvedValueOnce(undefined as any)
 
       const { result } = renderHook(() => useTags())
 
       await act(async () => {
         await new Promise(r => setTimeout(r, 0))
       })
-
-      // 清除之前的 invoke 调用记录
-      vi.mocked(invoke).mockClear()
 
       await act(async () => {
         await result.current.updateTag({ id: '1', name: 'Updated' })
       })
 
-      // BUG: invoke 没有被调用 - 更新不会持久化到后端
-      expect(invoke).not.toHaveBeenCalled()
+      expect(invoke).toHaveBeenCalledWith('tag:update', expect.objectContaining({
+        id: '1',
+        name: 'Updated',
+      }))
 
-      // 但本地状态确实更新了
       expect(result.current.tags[0].name).toBe('Updated')
     })
   })
 
   describe('deleteTag', () => {
-    it('// BUG: deleteTag 仅删除本地状态，不调用后端', async () => {
-      // BUG: useTags.ts:123-139 - deleteTag 没有调用任何 IPC
-      // 只是从本地 state 中移除标签
+    it('应调用 IPC 删除后端并更新本地状态', async () => {
       const mockTags = [
         { id: '1', name: 'Work', color: '#6366F1', isAiEnabled: false, emailCount: 5, createdAt: '2024-01-01' },
       ]
       vi.mocked(invoke).mockResolvedValueOnce(mockTags as any)
+      vi.mocked(invoke).mockResolvedValueOnce(undefined as any)
 
       const { result } = renderHook(() => useTags())
 
@@ -156,16 +154,12 @@ describe('useTags', () => {
         await new Promise(r => setTimeout(r, 0))
       })
 
-      vi.mocked(invoke).mockClear()
-
       await act(async () => {
         await result.current.deleteTag('1')
       })
 
-      // BUG: invoke 没有被调用 - 删除不会持久化到后端
-      expect(invoke).not.toHaveBeenCalled()
+      expect(invoke).toHaveBeenCalledWith('tag:delete', { id: '1' })
 
-      // 但本地状态确实删除了
       expect(result.current.tags).toHaveLength(0)
     })
   })

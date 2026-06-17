@@ -61,10 +61,13 @@ describe('IPC Helper', () => {
 
   describe('on', () => {
     it('应返回取消订阅回调', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
       const callback = vi.fn()
       const unsubscribe = on('email:sync_progress', callback)
 
       expect(typeof unsubscribe).toBe('function')
+      expect(warnSpy).toHaveBeenCalledWith('Event listening not yet implemented for channel: email:sync_progress')
+      warnSpy.mockRestore()
     })
   })
 })

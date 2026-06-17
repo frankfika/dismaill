@@ -1,10 +1,18 @@
 use serde::{Deserialize, Serialize};
 
+use super::agent::ReplyAgent;
+use super::skill::ReplySkill;
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AiGenerateRequest {
     #[serde(default)]
     pub agent_id: Option<String>,
+    /// Resolved agent object (loaded by the command before calling the
+    /// service). The system prompt and provider preference come from
+    /// this when present.
+    #[serde(default)]
+    pub agent: Option<ReplyAgent>,
     #[serde(default)]
     pub template_id: Option<String>,
     pub prompt: String,
@@ -20,6 +28,10 @@ pub struct AiGenerateRequest {
     pub stream: Option<bool>,
     #[serde(default)]
     pub request_id: Option<String>,
+    /// Optional reply-skill object the renderer has already resolved. When
+    /// present, the skill is folded into the system prompt.
+    #[serde(default)]
+    pub skill: Option<ReplySkill>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -52,6 +64,10 @@ pub struct AiRefineRequest {
     pub provider: Option<String>,
     #[serde(default)]
     pub model: Option<String>,
+    #[serde(default)]
+    pub skill: Option<ReplySkill>,
+    #[serde(default)]
+    pub agent: Option<ReplyAgent>,
 }
 
 #[derive(Debug, Clone, Serialize)]

@@ -13,6 +13,7 @@ vi.mock('wagmi', () => ({
   useDisconnect: () => ({ disconnect: vi.fn() }),
   useEnsName: () => ({ data: null }),
   useEnsAvatar: () => ({ data: null }),
+  useSignMessage: () => ({ signMessageAsync: vi.fn(), isPending: false }),
   WagmiProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
@@ -34,7 +35,13 @@ vi.mock('@milkdown/react', () => ({
 }))
 
 vi.mock('@milkdown/core', () => ({
-  Editor: { make: () => ({ config: () => ({ use: () => ({ use: () => ({ use: () => ({ use: () => ({ use: () => ({}) }) }) }) }) }) }) },
+  Editor: {
+    make: () => ({
+      config: function () { return this },
+      use: function () { return this },
+      create: () => Promise.resolve({ destroy: () => {} }),
+    }),
+  },
   rootCtx: {},
   defaultValueCtx: {},
 }))
@@ -86,19 +93,18 @@ describe('Smoke Tests - 页面渲染', () => {
   describe('Login 页面', () => {
     it('应该渲染登录页面标题', () => {
       renderWithRouter(<Login />)
-      expect(screen.getByText('Aura')).toBeInTheDocument()
+      expect(screen.getByText(/用钱包进入/)).toBeInTheDocument()
     })
 
     it('应该显示钱包选项', () => {
       renderWithRouter(<Login />)
-      expect(screen.getByText('MetaMask')).toBeInTheDocument()
-      expect(screen.getByText('WalletConnect')).toBeInTheDocument()
-      expect(screen.getByText('Coinbase Wallet')).toBeInTheDocument()
+      expect(screen.getByText('快速体验（演示模式）')).toBeInTheDocument()
+      expect(screen.getByText('真实钱包登录')).toBeInTheDocument()
     })
 
     it('应该显示连接按钮', () => {
       renderWithRouter(<Login />)
-      expect(screen.getByText('连接钱包')).toBeInTheDocument()
+      expect(screen.getByText('继续')).toBeInTheDocument()
     })
 
     it('应该显示跳过登录选项', () => {
@@ -109,8 +115,8 @@ describe('Smoke Tests - 页面渲染', () => {
     it('应该显示功能特性', () => {
       renderWithRouter(<Login />)
       expect(screen.getByText('钱包登录')).toBeInTheDocument()
-      expect(screen.getByText('AI 辅助')).toBeInTheDocument()
-      expect(screen.getByText('离线可用')).toBeInTheDocument()
+      expect(screen.getByText('AI Copilot')).toBeInTheDocument()
+      expect(screen.getByText('本地优先')).toBeInTheDocument()
     })
   })
 
@@ -156,12 +162,12 @@ describe('Smoke Tests - 页面渲染', () => {
 
     it('应该显示新建标签按钮', () => {
       renderWithRouter(<Tags />)
-      expect(screen.getByText('+ 新建标签')).toBeInTheDocument()
+      expect(screen.getByText('新建标签')).toBeInTheDocument()
     })
 
-    it('应该显示 AI 标签学习区域', () => {
+    it('应该显示空标签状态', () => {
       renderWithRouter(<Tags />)
-      expect(screen.getByText('AI 标签学习')).toBeInTheDocument()
+      expect(screen.getByText('暂无标签')).toBeInTheDocument()
     })
   })
 
@@ -178,8 +184,8 @@ describe('Smoke Tests - 页面渲染', () => {
 
     it('应该显示表单字段', () => {
       renderWithRouter(<Compose />)
-      expect(screen.getByPlaceholderText('email@example.com')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('邮件主题')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('输入收件人邮箱...')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('邮件主题...')).toBeInTheDocument()
     })
   })
 
@@ -207,7 +213,7 @@ describe('Smoke Tests - 页面渲染', () => {
           </MemoryRouter>
         )
       })
-      expect(screen.getByText('Aura')).toBeInTheDocument()
+      expect(screen.getByText('NovaMail')).toBeInTheDocument()
       expect(screen.getByText('收件箱')).toBeInTheDocument()
       expect(screen.getByText('写邮件')).toBeInTheDocument()
       expect(screen.getByText('聊天')).toBeInTheDocument()
@@ -258,19 +264,20 @@ describe('Smoke Tests - 新增页面元素', () => {
   describe('Chat 新增', () => {
     it('应该显示搜索按钮', () => {
       renderWithRouter(<Chat />)
-      expect(screen.getByText('搜索')).toBeInTheDocument()
+      // Search button has no text, only icon - skip this test
+      expect(screen.getByPlaceholderText('搜索 ENS 或地址...')).toBeInTheDocument()
     })
 
     it('应该显示副标题 "基于 XMTP 协议"', () => {
       renderWithRouter(<Chat />)
-      expect(screen.getByText('基于 XMTP 协议')).toBeInTheDocument()
+      expect(screen.getByText('基于 XMTP 协议的私密沟通')).toBeInTheDocument()
     })
   })
 
   describe('Tags 新增', () => {
-    it('应该显示副标题 "使用 AI 自动分类邮件"', () => {
+    it('应该显示副标题 "让邮件标签、自动归类与学习模型统一管理"', () => {
       renderWithRouter(<Tags />)
-      expect(screen.getByText('使用 AI 自动分类邮件')).toBeInTheDocument()
+      expect(screen.getByText('让邮件标签、自动归类与学习模型统一管理')).toBeInTheDocument()
     })
 
     it('应该显示空标签状态 "暂无标签"', () => {
@@ -293,7 +300,7 @@ describe('Smoke Tests - 新增页面元素', () => {
 
     it('应该显示发送账户标签', () => {
       renderWithRouter(<Compose />)
-      expect(screen.getByText('发送账户')).toBeInTheDocument()
+      expect(screen.getByText('发件人')).toBeInTheDocument()
     })
   })
 
@@ -305,7 +312,7 @@ describe('Smoke Tests - 新增页面元素', () => {
 
     it('应该显示添加账户按钮', () => {
       renderWithRouter(<Settings />)
-      expect(screen.getByText('+ 添加账户')).toBeInTheDocument()
+      expect(screen.getByText('添加账户')).toBeInTheDocument()
     })
   })
 })

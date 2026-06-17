@@ -11,11 +11,23 @@ struct Migration {
     sql: &'static str,
 }
 
-const MIGRATIONS: &[Migration] = &[Migration {
-    version: 1,
-    name: "initial_schema",
-    sql: include_str!("./sql/0001_initial.sql"),
-}];
+const MIGRATIONS: &[Migration] = &[
+    Migration {
+        version: 1,
+        name: "initial_schema",
+        sql: include_str!("./sql/0001_initial.sql"),
+    },
+    Migration {
+        version: 2,
+        name: "reply_skills",
+        sql: include_str!("./sql/0002_reply_skills.sql"),
+    },
+    Migration {
+        version: 3,
+        name: "reply_agents",
+        sql: include_str!("./sql/0003_reply_agents.sql"),
+    },
+];
 
 pub fn run(conn: &mut Connection) -> AppResult<()> {
     conn.execute_batch(
@@ -33,6 +45,7 @@ pub fn run(conn: &mut Connection) -> AppResult<()> {
             |r| r.get(0),
         )
         .unwrap_or(0);
+    tracing::info!(current_version = current, total_migrations = MIGRATIONS.len(), "checking migrations");
 
     for m in MIGRATIONS {
         if m.version <= current {

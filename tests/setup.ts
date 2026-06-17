@@ -8,6 +8,19 @@ const ipcHandlers = new Map<string, (...args: unknown[]) => Promise<IpcResponse>
 // Channels that should return arrays by default
 const listChannels = new Set(['account:list', 'email:list', 'tag:list', 'signature:list'])
 
+// Suppress known jsdom "Not implemented" warnings that do not affect test correctness
+const originalError = console.error
+console.error = (...args: unknown[]) => {
+  const message = args[0]
+  if (
+    typeof message === 'string' &&
+    message.includes('Not implemented: HTMLFormElement.prototype.requestSubmit')
+  ) {
+    return
+  }
+  originalError(...args)
+}
+
 // Mock @tauri-apps/api/core invoke
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(async (command: string, payload?: unknown) => {

@@ -41,6 +41,7 @@ pub fn init(db_path: impl AsRef<Path>) -> AppResult<SharedPool> {
 
 /// Open an in-memory pool seeded with the full schema. Useful for unit tests.
 #[cfg(test)]
+#[allow(dead_code)]
 pub fn init_in_memory() -> AppResult<SharedPool> {
     let manager = SqliteConnectionManager::memory().with_init(|c| {
         c.execute_batch(

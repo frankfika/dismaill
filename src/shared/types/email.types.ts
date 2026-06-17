@@ -25,12 +25,12 @@ export interface EmailAccount {
   walletAddress: string
   emailAddress: string
   displayName: string | null
-  provider: 'gmail' | 'outlook' | 'icloud' | 'custom'
+  provider: string
   imapHost: string
   imapPort: number
   smtpHost: string
   smtpPort: number
-  authType: 'password' | 'oauth2'
+  authType: string
   isActive: boolean
   lastSyncAt: string | null
 }
@@ -87,4 +87,24 @@ export interface TagSummary {
   id: string
   name: string
   color: string
+}
+
+/**
+ * Preset of mainstream email providers used to quick-fill the IMAP/SMTP
+ * fields on the add-account form. Mirrors `ProviderPreset` in
+ * `src-tauri/src/services/email_providers.rs`.
+ */
+export interface ProviderPreset {
+  id: string
+  name: string
+  /** 'global' | 'cn' */
+  region: string
+  domains: string[]
+  imapHost: string
+  imapPort: number
+  smtpHost: string
+  smtpPort: number
+  supportsOauth: boolean
+  passwordHint: string
+  helpUrl: string
 }

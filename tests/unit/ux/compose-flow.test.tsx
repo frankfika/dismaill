@@ -29,7 +29,13 @@ vi.mock('@milkdown/react', () => ({
   useEditor: () => ({ get: vi.fn() }),
 }))
 vi.mock('@milkdown/core', () => ({
-  Editor: { make: () => ({ config: () => ({ use: () => ({ use: () => ({ use: () => ({ use: () => ({ use: () => ({}) }) }) }) }) }) }) },
+  Editor: {
+    make: () => ({
+      config: function () { return this },
+      use: function () { return this },
+      create: () => Promise.resolve({ destroy: () => {} }),
+    }),
+  },
   rootCtx: {},
   defaultValueCtx: {},
 }))
@@ -71,21 +77,21 @@ describe('Compose Flow Tests', () => {
     it('应该渲染所有表单字段', () => {
       renderWithRouter(<Compose />)
 
-      expect(screen.getByText('发送账户')).toBeInTheDocument()
+      expect(screen.getByText('发件人')).toBeInTheDocument()
       expect(screen.getByText('收件人')).toBeInTheDocument()
       expect(screen.getByText('主题')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('email@example.com')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('邮件主题')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('输入收件人邮箱...')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('邮件主题...')).toBeInTheDocument()
     })
 
     it('应该能输入收件人和主题', async () => {
       renderWithRouter(<Compose />)
 
-      const toInput = screen.getByPlaceholderText('email@example.com')
+      const toInput = screen.getByPlaceholderText('输入收件人邮箱...')
       await userEvent.type(toInput, 'test@example.com')
       expect(toInput).toHaveValue('test@example.com')
 
-      const subjectInput = screen.getByPlaceholderText('邮件主题')
+      const subjectInput = screen.getByPlaceholderText('邮件主题...')
       await userEvent.type(subjectInput, '测试主题')
       expect(subjectInput).toHaveValue('测试主题')
     })

@@ -2,33 +2,40 @@
  * useAI Hook
  * AI 服务调用
  */
-
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { invoke } from '../lib/ipc'
-import type { AiGenerateResponse, AiRefineResponse, AiClassifyResponse, AiProvider } from '@shared/types/ai.types'
+import type {
+  AiGenerateResponse,
+  AiRefineResponse,
+  AiClassifyResponse,
+  AiProvider,
+} from '@shared/types/ai.types'
+import type { ReplySkill } from '@shared/types/skill.types'
 
 export function useAI() {
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
   const generate = useCallback(async (request: {
     prompt: string
     agentId?: string
     templateId?: string
     provider?: string
+    skill?: ReplySkill | null
   }) => {
-    setIsGenerating(true)
-    setError(null)
-
     try {
-      const result = await invoke<AiGenerateResponse>('ai:generate', request)
+      const result = await invoke<AiGenerateResponse>('ai:generate', {
+        prompt: request.prompt,
+        agentId: request.agentId ?? null,
+        templateId: request.templateId ?? null,
+        context: null,
+        provider: request.provider ?? null,
+        model: null,
+        maxTokens: null,
+        stream: null,
+        requestId: null,
+        skill: request.skill ?? null,
+      })
       return result
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'AI generation failed'
-      setError(errorMessage)
-      throw err
-    } finally {
-      setIsGenerating(false)
+      throw err instanceof Error ? err : new Error('AI generation failed')
     }
   }, [])
 
@@ -37,58 +44,55 @@ export function useAI() {
     action: 'polish' | 'shorten' | 'expand' | 'formalize' | 'casualize' | 'translate'
     targetLanguage?: string
     instructions?: string
+    provider?: string
+    skill?: ReplySkill | null
   }) => {
-    setIsGenerating(true)
-    setError(null)
-
     try {
-      const result = await invoke<AiRefineResponse>('ai:refine', request)
+      const result = await invoke<AiRefineResponse>('ai:refine', {
+        content: request.content,
+        action: request.action,
+        targetLanguage: request.targetLanguage ?? null,
+        instructions: request.instructions ?? null,
+        provider: request.provider ?? null,
+        model: null,
+        skill: request.skill ?? null,
+      })
       return result
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'AI refinement failed'
-      setError(errorMessage)
-      throw err
-    } finally {
-      setIsGenerating(false)
+      throw err instanceof Error ? err : new Error('AI refinement failed')
     }
   }, [])
 
-  const classify = useCallback(async (emailId: string, availableTags: Array<{ id: string; name: string; description?: string }>) => {
-    setIsGenerating(true)
-    setError(null)
-
-    try {
-      const result = await invoke<AiClassifyResponse>('ai:classify_email', {
-        emailId,
-        availableTags,
-      })
-      return result.suggestions
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'AI classification failed'
-      setError(errorMessage)
-      throw err
-    } finally {
-      setIsGenerating(false)
-    }
-  }, [])
+  const classify = useCallback(
+    async (
+      emailId: string,
+      availableTags: Array<{ id: string; name: string; description?: string }>,
+      emailContent?: string,
+    ) => {
+      try {
+        const result = await invoke<AiClassifyResponse>('ai:classify_email', {
+          emailId,
+          emailContent: emailContent ?? null,
+          availableTags,
+          provider: null,
+          model: null,
+        })
+        return result.suggestions
+      } catch (err) {
+        throw err instanceof Error ? err : new Error('AI classification failed')
+      }
+    },
+    [],
+  )
 
   const getProviders = useCallback(async () => {
     try {
       const result = await invoke<{ providers: AiProvider[] }>('ai:providers')
       return result.providers
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to get providers'
-      setError(errorMessage)
-      throw err
+      throw err instanceof Error ? err : new Error('Failed to get providers')
     }
   }, [])
 
-  return {
-    isGenerating,
-    error,
-    generate,
-    refine,
-    classify,
-    getProviders,
-  }
+  return { generate, refine, classify, getProviders }
 }

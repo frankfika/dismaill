@@ -15,42 +15,59 @@ interface AuthState {
   isConnecting: boolean
   error: string | null
 
-  // Actions for hooks
   setWallet: (wallet: Wallet | null) => void
   setConnecting: (connecting: boolean) => void
   setError: (error: string | null) => void
 
-  // Actions
-  connect: (walletType: 'metamask' | 'walletconnect' | 'coinbase') => Promise<void>
+  /**
+   * Connect to the backend with a signature. The renderer (Login page)
+   * is responsible for producing the wallet signature via wagmi/viem
+   * and passing it in. For local demo use, callers can pass empty
+   * strings for `signature` and `message` — the backend still creates
+   * a session for the supplied address.
+   */
+  connect: (params: {
+    walletType: 'metamask' | 'walletconnect' | 'coinbase'
+    address: string
+    signature: string
+    message: string
+    ensName?: string
+    avatarUrl?: string
+  }) => Promise<void>
   disconnect: () => Promise<void>
+  verifySession: () => Promise<void>
   clearError: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       wallet: null,
       isConnected: false,
       isConnecting: false,
       error: null,
 
-      // Actions for hooks
       setWallet: (wallet) => set({ wallet, isConnected: !!wallet }),
       setConnecting: (isConnecting) => set({ isConnecting }),
       setError: (error) => set({ error }),
 
-      connect: async (walletType) => {
+      connect: async ({ walletType, address, signature, message, ensName, avatarUrl }) => {
         set({ isConnecting: true, error: null })
         try {
-          const response = await invokeWrapped<AuthConnectResponse>('auth:connect', { walletType })
-
+          const response = await invokeWrapped<AuthConnectResponse>('auth:connect', {
+            walletType,
+            address,
+            signature,
+            message,
+            ensName: ensName ?? null,
+            avatarUrl: avatarUrl ?? null,
+          })
           if (response.success && response.data) {
-            const data = response.data
             set({
               wallet: {
-                address: data.address,
-                ensName: data.ensName,
-                avatarUrl: data.avatarUrl,
+                address: response.data.address,
+                ensName: response.data.ensName,
+                avatarUrl: response.data.avatarUrl,
               },
               isConnected: true,
               isConnecting: false,
@@ -74,11 +91,25 @@ export const useAuthStore = create<AuthState>()(
         try {
           await invokeWrapped('auth:disconnect')
         } finally {
-          set({
-            wallet: null,
-            isConnected: false,
-            error: null,
-          })
+          set({ wallet: null, isConnected: false, error: null })
+        }
+      },
+
+      verifySession: async () => {
+        const { wallet } = get()
+        if (!wallet?.address) {
+          set({ wallet: null, isConnected: false })
+          return
+        }
+        try {
+          const response = await invokeWrapped<{ address: string } | null>('auth:current_wallet')
+          if (response.success && response.data && response.data.address.toLowerCase() === wallet.address.toLowerCase()) {
+            set({ isConnected: true, error: null })
+          } else {
+            set({ wallet: null, isConnected: false, error: null })
+          }
+        } catch (error) {
+          set({ wallet: null, isConnected: false, error: null })
         }
       },
 
@@ -87,6 +118,6 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'aura-auth-storage',
       partialize: (state) => ({ wallet: state.wallet, isConnected: state.isConnected }),
-    }
-  )
+    },
+  ),
 )

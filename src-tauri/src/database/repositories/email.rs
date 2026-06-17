@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use rusqlite::{params, OptionalExtension, Row, ToSql};
 
 use crate::database::SharedPool;

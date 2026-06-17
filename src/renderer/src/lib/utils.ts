@@ -1,13 +1,54 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import DOMPurify from 'dompurify'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Sanitize HTML to prevent XSS when using dangerouslySetInnerHTML.
+ * Strips script tags, event handlers, and other dangerous content.
+ */
+export function sanitizeHtml(html: string): string {
+  if (typeof window === 'undefined') return html
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'strong',
+      'b',
+      'em',
+      'i',
+      'u',
+      'del',
+      's',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'ul',
+      'ol',
+      'li',
+      'blockquote',
+      'pre',
+      'code',
+      'a',
+      'span',
+      'div',
+      'hr',
+      'img',
+    ],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class'],
+  })
+}
+
 export const format = {
   date: (dateString: string): string => {
     const date = new Date(dateString)
+    if (Number.isNaN(date.getTime())) return ''
     const now = new Date()
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
 

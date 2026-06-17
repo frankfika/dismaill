@@ -3,6 +3,8 @@ export * from './ipc.types'
 export * from './wallet.types'
 export * from './email.types'
 export * from './ai.types'
+export * from './skill.types'
+export * from './agent.types'
 
 // Tag Types
 export interface Tag {

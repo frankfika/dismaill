@@ -13,12 +13,15 @@ fn pool(state: &State<'_, Arc<AppState>>) -> SharedPool {
     crate::database::init(&state.db_path()).expect("db init")
 }
 
+/// All commands here use **flat top-level args** (camelCase via `rename_all`).
+
 #[tauri::command(rename_all = "camelCase")]
 pub fn signature_create(
     email_account_id: String,
     name: String,
     content_html: String,
     content_text: Option<String>,
+    is_default: Option<bool>,
     state: State<'_, Arc<AppState>>,
 ) -> AppResult<Signature> {
     let _ = AuthService::require_session(&state)?;
@@ -31,7 +34,7 @@ pub fn signature_create(
         name: &name,
         content_html: &content_html,
         content_text: content_text.as_deref(),
-        is_default: false,
+        is_default: is_default.unwrap_or(false),
     })
 }
 
@@ -62,8 +65,8 @@ pub fn signature_update(
     let pool = pool(&state);
     let repo = SignatureRepo::new(pool);
     let mut update = UpdateSignature::default();
-    if let Some(n) = &name { update.name = Some(n); }
-    if let Some(h) = &content_html { update.content_html = Some(h); }
+    if let Some(ref n) = name { update.name = Some(n.as_str()); }
+    if let Some(ref h) = content_html { update.content_html = Some(h.as_str()); }
     update.content_text = Some(content_text.as_deref());
     if let Some(d) = is_default { update.is_default = Some(d); }
     repo.update(&id, update)?;
