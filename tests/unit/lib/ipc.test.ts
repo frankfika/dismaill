@@ -37,6 +37,24 @@ describe('IPC Helper', () => {
         { to: ['test@example.com'], subject: 'Hi' }
       )
     })
+
+    it('rejects primitive payloads', async () => {
+      mockTauriInvoke.mockResolvedValue(null)
+      await invoke('email:send', 'just-a-string')
+      expect(mockTauriInvoke).toHaveBeenLastCalledWith('email_send', {})
+    })
+
+    it('rejects null payloads', async () => {
+      mockTauriInvoke.mockResolvedValue(null)
+      await invoke('email:send', null)
+      expect(mockTauriInvoke).toHaveBeenLastCalledWith('email_send', {})
+    })
+
+    it('rejects array payloads (forces object form)', async () => {
+      mockTauriInvoke.mockResolvedValue(null)
+      await invoke('email:send', ['a', 'b'])
+      expect(mockTauriInvoke).toHaveBeenLastCalledWith('email_send', {})
+    })
   })
 
   describe('invokeWrapped', () => {

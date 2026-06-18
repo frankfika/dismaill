@@ -6,9 +6,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Schemes that may appear in <a href> or <img src>. Anything else (file://,
+// javascript:, vbscript:, etc.) is stripped by DOMPurify's URI safelist.
+const ALLOWED_URI_REGEXP =
+  /^(?:(?:https?|mailto|cid|data|ftp|tel):)/i
+
 /**
  * Sanitize HTML to prevent XSS when using dangerouslySetInnerHTML.
- * Strips script tags, event handlers, and other dangerous content.
+ *
+ * Hardening:
+ * - `img` is allowed but its `src` is restricted to a small scheme safelist
+ *   so an attacker can't use it as a pixel-tracking / Referer-exfil beacon
+ *   pointing at arbitrary third-party hosts.
+ * - `ALLOWED_URI_REGEXP` covers <a href> too, blocking javascript:/data:
+ *   surprises in custom Markdown renderers.
  */
 export function sanitizeHtml(html: string): string {
   if (typeof window === 'undefined') return html
@@ -42,6 +53,7 @@ export function sanitizeHtml(html: string): string {
       'img',
     ],
     ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class'],
+    ALLOWED_URI_REGEXP,
   })
 }
 

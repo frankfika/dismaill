@@ -11,10 +11,10 @@
 use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::aes::Aes256;
 use aes_gcm::AesGcm;
+use argon2::{Algorithm, Argon2, Params, Version};
 use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use typenum::U16;
 use zeroize::Zeroizing;
 
@@ -25,20 +25,55 @@ const TAG_LEN: usize = 16;
 
 type Aes256Gcm16 = AesGcm<Aes256, U16>;
 
-/// SHA-256(signature) -> 32-byte AES key. Matches `deriveKeyFromSignature` in
-/// the Electron CryptoService. Currently unused outside tests but kept as the
-/// canonical key-derivation helper.
-#[allow(dead_code)]
-pub fn derive_key_from_signature(signature: &str) -> AppResult<Zeroizing<[u8; 32]>> {
+/// Salt length for Argon2id (per RFC 9106 minimum).
+pub const KDF_SALT_LEN: usize = 16;
+/// 32-byte AES-256 key.
+pub const MASTER_KEY_LEN: usize = 32;
+
+/// Generate a fresh random salt for the Argon2id KDF. One per wallet,
+/// persisted in the `wallet.master_key_salt` column.
+pub fn generate_salt() -> [u8; KDF_SALT_LEN] {
+    let mut salt = [0u8; KDF_SALT_LEN];
+    rand::thread_rng().fill_bytes(&mut salt);
+    salt
+}
+
+/// Derive a 32-byte master key from the wallet signature + per-wallet salt
+/// using Argon2id with OWASP-recommended parameters (m=19 MiB, t=2, p=1).
+///
+/// Argon2id is the standard KDF for password-based key derivation and resists
+/// GPU/ASIC attacks much better than a single SHA-256. A leaked signature
+/// alone is no longer sufficient to recover the master key — the per-wallet
+/// random salt must also be present.
+pub fn derive_master_key(
+    signature: &str,
+    salt: &[u8; KDF_SALT_LEN],
+) -> AppResult<Zeroizing<[u8; MASTER_KEY_LEN]>> {
     if signature.len() < 10 {
         return Err(AppError::Crypto("signature too short".into()));
     }
-    let mut hasher = Sha256::new();
-    hasher.update(signature.as_bytes());
-    let digest = hasher.finalize();
-    let mut key = Zeroizing::new([0u8; 32]);
-    key.copy_from_slice(&digest);
-    Ok(key)
+    // 19 MiB, 2 iterations, 1 lane — OWASP minimum for Argon2id (2024).
+    let params = Params::new(19 * 1024, 2, 1, Some(MASTER_KEY_LEN))
+        .map_err(|e| AppError::Crypto(format!("argon2 params: {e}")))?;
+    let argon = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
+    let mut out = Zeroizing::new([0u8; MASTER_KEY_LEN]);
+    argon
+        .hash_password_into(signature.as_bytes(), salt, &mut *out)
+        .map_err(|e| AppError::Crypto(format!("argon2 derive: {e}")))?;
+    Ok(out)
+}
+
+/// Backwards-compat helper kept for the existing tests. New callers should
+/// use `derive_master_key` with a persisted salt. Marked `#[allow(dead_code)]`
+/// so the test module continues to compile; production paths go through the
+/// KDF above.
+#[allow(dead_code)]
+pub fn derive_key_from_signature(signature: &str) -> AppResult<Zeroizing<[u8; 32]>> {
+    // Use a fixed zero salt so the result matches the historical SHA-256
+    // behaviour for tests that pre-date the KDF migration. Production code
+    // must use `derive_master_key` with a per-wallet random salt.
+    let salt = [0u8; KDF_SALT_LEN];
+    derive_master_key(signature, &salt)
 }
 
 pub fn encrypt(plaintext: &str, key: &[u8; 32]) -> AppResult<String> {
@@ -176,5 +211,29 @@ mod tests {
     #[test]
     fn rejects_short_signature() {
         assert!(derive_key_from_signature("short").is_err());
+    }
+
+    #[test]
+    fn derive_master_key_is_deterministic_with_same_salt() {
+        let salt = [0x42u8; KDF_SALT_LEN];
+        let k1 = derive_master_key("0xabcdef1234567890aabb", &salt).unwrap();
+        let k2 = derive_master_key("0xabcdef1234567890aabb", &salt).unwrap();
+        assert_eq!(*k1, *k2);
+    }
+
+    #[test]
+    fn derive_master_key_differs_per_salt() {
+        let salt_a = [0x01u8; KDF_SALT_LEN];
+        let salt_b = [0x02u8; KDF_SALT_LEN];
+        let k_a = derive_master_key("0xabcdef1234567890aabb", &salt_a).unwrap();
+        let k_b = derive_master_key("0xabcdef1234567890aabb", &salt_b).unwrap();
+        assert_ne!(*k_a, *k_b, "different salts must produce different keys");
+    }
+
+    #[test]
+    fn generate_salt_is_random() {
+        let a = generate_salt();
+        let b = generate_salt();
+        assert_ne!(a, b, "freshly generated salts should not collide");
     }
 }

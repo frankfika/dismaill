@@ -2,7 +2,7 @@
 use rusqlite::{params, OptionalExtension, Row};
 
 use crate::database::SharedPool;
-use crate::error::AppResult;
+use crate::error::{AppError, AppResult};
 use crate::models::Wallet;
 
 pub struct WalletRepo {
@@ -14,31 +14,35 @@ impl WalletRepo {
         Self { pool }
     }
 
+    /// Create or update a wallet. `master_key_salt` is persisted so the
+    /// Argon2id KDF can reproduce the same AES master key on every unlock.
     pub fn upsert(
         &self,
         address: &str,
         ens_name: Option<&str>,
         avatar_url: Option<&str>,
-        encrypted_key: &str,
+        master_key_salt: Option<&[u8]>,
     ) -> AppResult<Wallet> {
         let conn = self.pool.get()?;
         conn.execute(
-            "INSERT INTO wallet (address, ens_name, avatar_url, encrypted_key)
-             VALUES (?1, ?2, ?3, ?4)
+            "INSERT INTO wallet (address, ens_name, avatar_url, encrypted_key, master_key_salt)
+             VALUES (?1, ?2, ?3, '', ?4)
              ON CONFLICT(address) DO UPDATE SET
                  ens_name = excluded.ens_name,
                  avatar_url = excluded.avatar_url,
+                 master_key_salt = COALESCE(excluded.master_key_salt, wallet.master_key_salt),
                  updated_at = datetime('now')",
-            params![address, ens_name, avatar_url, encrypted_key],
+            params![address, ens_name, avatar_url, master_key_salt],
         )?;
-        self.find_by_address(address).map(|w| w.expect("just upserted"))
+        self.find_by_address(address)?
+            .ok_or_else(|| AppError::Db(format!("wallet {address} missing after upsert")))
     }
 
     pub fn find_by_address(&self, address: &str) -> AppResult<Option<Wallet>> {
         let conn = self.pool.get()?;
         let row = conn
             .query_row(
-                "SELECT address, ens_name, avatar_url, created_at
+                "SELECT address, ens_name, avatar_url, created_at, master_key_salt
                  FROM wallet WHERE address = ?1",
                 params![address],
                 map_wallet,
@@ -74,6 +78,22 @@ impl WalletRepo {
         Ok(())
     }
 
+    /// Backfill the Argon2id salt for a legacy wallet that pre-dates the
+    /// KDF migration. Idempotent — does nothing if the salt is already set.
+    pub fn set_master_key_salt(
+        &self,
+        address: &str,
+        salt: &[u8],
+    ) -> AppResult<()> {
+        let conn = self.pool.get()?;
+        conn.execute(
+            "UPDATE wallet SET master_key_salt = ?2
+             WHERE address = ?1 AND master_key_salt IS NULL",
+            params![address, salt],
+        )?;
+        Ok(())
+    }
+
     #[allow(dead_code)]
     pub fn delete(&self, address: &str) -> AppResult<()> {
         let conn = self.pool.get()?;
@@ -88,5 +108,6 @@ fn map_wallet(row: &Row<'_>) -> rusqlite::Result<Wallet> {
         ens_name: row.get(1)?,
         avatar_url: row.get(2)?,
         created_at: row.get(3)?,
+        master_key_salt: row.get(4)?,
     })
 }

@@ -7,6 +7,11 @@ pub struct Wallet {
     pub ens_name: Option<String>,
     pub avatar_url: Option<String>,
     pub created_at: String,
+    /// Random per-wallet salt for Argon2id master-key derivation.
+    /// `None` for legacy wallets created before the KDF migration — those
+    /// will receive a fresh salt on next unlock.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub master_key_salt: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

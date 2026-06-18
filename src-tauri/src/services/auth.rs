@@ -1,15 +1,15 @@
 //! Wallet auth service.
 //!
 //! In the Electron version this used HMAC-SHA256 as a stub. The Tauri version
-//! keeps the same surface but derives the AES-256 master key from the
-//! signature hash so the session can decrypt credentials.
-
-use sha2::{Digest, Sha256};
+//! keeps the same surface but derives the AES-256 master key via **Argon2id**
+//! from the wallet signature + a per-wallet random salt. The salt is persisted
+//! in `wallet.master_key_salt` so the same key is recovered on every unlock.
 
 use crate::database::repositories::wallet::WalletRepo;
 use crate::database::SharedPool;
 use crate::error::{AppError, AppResult};
 use crate::models::{AuthConnectRequest, AuthConnectResponse, AuthSignRequest, AuthSignResponse, Wallet};
+use crate::services::crypto::{derive_master_key, generate_salt, KDF_SALT_LEN};
 use crate::state::{AppState, Session};
 
 pub struct AuthService {
@@ -37,22 +37,50 @@ impl AuthService {
         })
     }
 
-    /// Unlock session by verifying a signature and deriving the master key.
-    /// If signature is empty, derives a deterministic key from the wallet address
-    /// so the frontend can work without an explicit unlock step.
+    /// Unlock the session by deriving the master key from the wallet
+    /// signature + the wallet's persisted salt (creating a fresh salt on
+    /// first use or when the wallet pre-dates the KDF migration).
     pub fn unlock(
         &self,
         state: &AppState,
         wallet_address: String,
         signature: String,
     ) -> AppResult<Wallet> {
-        // Derive 32-byte master key from signature hash, or from address if no signature provided.
-        let hash = if signature.is_empty() || signature == "invalid" {
-            Sha256::digest(wallet_address.as_bytes())
+        // The signature is the "password" input to the KDF. The empty-string
+        // and "invalid" sentinels are legacy demo-mode paths from the
+        // Electron client; substitute the wallet address so the KDF still
+        // gets a non-empty, deterministic input.
+        let kdf_input = if signature.is_empty() || signature == "invalid" {
+            wallet_address.as_str()
         } else {
-            Sha256::digest(signature.as_bytes())
+            signature.as_str()
         };
-        let master_key = zeroize::Zeroizing::new(hash.into());
+
+        let repo = WalletRepo::new(self.pool.clone());
+        let existing = repo.find_by_address(&wallet_address)?;
+
+        // Pick or create the salt. The salt is what makes each wallet's
+        // master key unique even if two wallets happen to use the same
+        // signature string.
+        let salt: [u8; KDF_SALT_LEN] = match existing.as_ref().and_then(|w| w.master_key_salt.as_ref()) {
+            Some(stored) if stored.len() == KDF_SALT_LEN => {
+                let mut s = [0u8; KDF_SALT_LEN];
+                s.copy_from_slice(stored);
+                s
+            }
+            _ => {
+                let new_salt = generate_salt();
+                repo.upsert(
+                    &wallet_address,
+                    existing.as_ref().and_then(|w| w.ens_name.as_deref()),
+                    existing.as_ref().and_then(|w| w.avatar_url.as_deref()),
+                    Some(&new_salt),
+                )?;
+                new_salt
+            }
+        };
+
+        let master_key = derive_master_key(kdf_input, &salt)?;
 
         let mut session = state.session.lock().unwrap();
         *session = Some(Session {
@@ -60,8 +88,7 @@ impl AuthService {
             master_key,
         });
 
-        let repo = WalletRepo::new(self.pool.clone());
-        match repo.find_by_address(&wallet_address)? {
+        match existing {
             Some(w) => Ok(w),
             None => {
                 // First time — create placeholder record (real ENS resolution later).
@@ -70,8 +97,10 @@ impl AuthService {
                     ens_name: None,
                     avatar_url: None,
                     created_at: chrono::Utc::now().to_rfc3339(),
+                    master_key_salt: Some(salt.to_vec()),
                 };
-                repo.upsert(&wallet.address, None, None, "")?;
+                // The upsert above already wrote the salt; return the wallet
+                // record we just constructed.
                 Ok(wallet)
             }
         }

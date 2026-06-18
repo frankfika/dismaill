@@ -22,10 +22,15 @@ export async function invoke<T>(channel: IpcChannel, ...args: unknown[]): Promis
   const command = mapChannel(channel)
 
   try {
-    // Tauri invoke 接受一个 payload 对象
+    // Tauri invoke 接受一个 payload 对象. 拒绝原始值、null 和数组，
+    // 它们会绕过字段级类型校验。
+    const first = args[0]
     const payload =
-      args.length > 0 && args[0] !== null && typeof args[0] === 'object'
-        ? (args[0] as Record<string, unknown>)
+      first !== undefined &&
+      first !== null &&
+      typeof first === 'object' &&
+      !Array.isArray(first)
+        ? (first as Record<string, unknown>)
         : {}
     const result = await tauriInvoke<T>(command, payload)
     return result

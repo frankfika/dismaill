@@ -27,6 +27,11 @@ const MIGRATIONS: &[Migration] = &[
         name: "reply_agents",
         sql: include_str!("./sql/0003_reply_agents.sql"),
     },
+    Migration {
+        version: 4,
+        name: "integrity",
+        sql: include_str!("./sql/0004_integrity.sql"),
+    },
 ];
 
 pub fn run(conn: &mut Connection) -> AppResult<()> {

@@ -77,6 +77,24 @@ describe('Utils', () => {
       const result = sanitizeHtml('<a href="https://example.com" target="_blank">link</a>')
       expect(result).toContain('href="https://example.com"')
     })
+
+    it('应该剥离 javascript: URL', () => {
+      const result = sanitizeHtml('<a href="javascript:alert(1)">click</a>')
+      expect(result).not.toContain('javascript:')
+    })
+
+    it('应该剥离 file: URL', () => {
+      const result = sanitizeHtml('<a href="file:///etc/passwd">click</a>')
+      expect(result).not.toContain('file:///etc/passwd')
+    })
+
+    it('img src 应拒绝 javascript: / file: 协议', () => {
+      const js = sanitizeHtml('<img src="javascript:alert(1)" alt="x">')
+      expect(js).not.toContain('javascript:')
+
+      const file = sanitizeHtml('<img src="file:///etc/passwd" alt="x">')
+      expect(file).not.toContain('file:///etc/passwd')
+    })
   })
 
   describe('format.datetime', () => {
