@@ -136,4 +136,58 @@ mod tests {
         );
         assert!(dup.is_err(), "duplicate message_id should be rejected");
     }
+
+    #[test]
+    fn mark_read_chunks_large_id_batches() {
+        use crate::database::repositories::email::EmailRepo;
+        let pool = init_in_memory().expect("init_in_memory");
+
+        // Seed wallet + account + 1200 emails (crosses the 500-id chunk
+        // boundary twice) using a single connection, then drop it before
+        // calling mark_read (the in-memory pool is max_size(1)).
+        {
+            let conn = pool.get().expect("get conn");
+            conn.execute_batch(
+                "INSERT INTO wallet (address, ens_name, avatar_url, encrypted_key)
+                 VALUES ('0xtest', NULL, NULL, '');
+                 INSERT INTO email_account
+                     (id, wallet_address, email_address, display_name, provider,
+                      imap_host, imap_port, smtp_host, smtp_port, credentials)
+                 VALUES ('acct-1', '0xtest', 'a@example.com', NULL, 'custom',
+                         'imap.example.com', 993, 'smtp.example.com', 465, '{}');",
+            )
+            .expect("seed");
+
+            let n: i64 = 1200;
+            let tx = conn.unchecked_transaction().expect("begin tx");
+            for i in 0..n {
+                tx.execute(
+                    "INSERT INTO email
+                         (id, email_account_id, message_id, folder, subject, sender, received_at)
+                     VALUES (?1, 'acct-1', ?2, 'INBOX', 'hi', 'a@x', '2024-01-01T00:00:00Z')",
+                    rusqlite::params![format!("e-{i}"), format!("<msg-{i}@host>")],
+                )
+                .expect("insert");
+            }
+            tx.commit().expect("commit");
+        }
+
+        // Build a list of 1200 ids and mark them all read.
+        let n: i64 = 1200;
+        let ids: Vec<String> = (0..n).map(|i| format!("e-{i}")).collect();
+        let repo = EmailRepo::new(pool.clone());
+        let updated = repo.mark_read(&ids, true).expect("mark_read");
+        assert_eq!(updated as i64, n, "all rows should be updated");
+
+        // Verify they're all read (re-acquire connection after mark_read).
+        let conn = pool.get().expect("get conn 2");
+        let unread: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM email WHERE is_read = 0",
+                [],
+                |r| r.get(0),
+            )
+            .expect("count");
+        assert_eq!(unread, 0, "every email should be marked read");
+    }
 }

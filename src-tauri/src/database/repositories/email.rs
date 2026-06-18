@@ -208,24 +208,36 @@ impl EmailRepo {
         Ok(rows)
     }
 
+    /// Update `is_read` on a batch of email ids. Chunked to stay under
+    /// SQLite's `SQLITE_MAX_VARIABLE_NUMBER` (default 999; 32 766 since 3.32).
+    /// We use a conservative 500 to keep the query plan small and the
+    /// connection time short when callers select "all unread" on a busy
+    /// inbox.
     pub fn mark_read(&self, ids: &[String], is_read: bool) -> AppResult<usize> {
         if ids.is_empty() {
             return Ok(0);
         }
-        let placeholders = std::iter::repeat("?")
-            .take(ids.len())
-            .collect::<Vec<_>>()
-            .join(",");
-        let sql = format!("UPDATE email SET is_read = ? WHERE id IN ({})", placeholders);
+        const CHUNK: usize = 500;
         let conn = self.pool.get()?;
-        let mut args: Vec<rusqlite::types::Value> = Vec::with_capacity(ids.len() + 1);
-        args.push((is_read as i64).into());
-        for id in ids {
-            args.push(id.clone().into());
+        let mut total = 0usize;
+        for chunk in ids.chunks(CHUNK) {
+            let placeholders = std::iter::repeat("?")
+                .take(chunk.len())
+                .collect::<Vec<_>>()
+                .join(",");
+            let sql = format!(
+                "UPDATE email SET is_read = ?1 WHERE id IN ({})",
+                placeholders
+            );
+            let mut args: Vec<rusqlite::types::Value> = Vec::with_capacity(chunk.len() + 1);
+            args.push((is_read as i64).into());
+            for id in chunk {
+                args.push(id.clone().into());
+            }
+            let params_iter: Vec<&dyn ToSql> = args.iter().map(|v| v as &dyn ToSql).collect();
+            total += conn.execute(&sql, params_iter.as_slice())?;
         }
-        let params_iter: Vec<&dyn ToSql> = args.iter().map(|v| v as &dyn ToSql).collect();
-        let n = conn.execute(&sql, params_iter.as_slice())?;
-        Ok(n)
+        Ok(total)
     }
 
     pub fn soft_delete(&self, ids: &[String]) -> AppResult<usize> {
