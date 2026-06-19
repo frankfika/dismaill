@@ -71,11 +71,13 @@ export function useWallet() {
   const disconnectWallet = useCallback(async () => {
     try {
       await invoke('auth:disconnect')
-      disconnect()
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Disconnect failed'
       setError(errorMessage)
       throw err
+    } finally {
+      // Always clear local state regardless of backend result
+      disconnect()
     }
   }, [disconnect, setError])
 

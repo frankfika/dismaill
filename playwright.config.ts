@@ -27,7 +27,7 @@ export default defineConfig({
     timeout: 10000,
   },
   webServer: {
-    command: 'pnpm dev',
+    command: 'npx vite',
     url: 'http://localhost:1420',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

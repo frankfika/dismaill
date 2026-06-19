@@ -42,6 +42,7 @@ export default defineConfig(async () => ({
   build: {
     outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,
+    base: './',
     // Produce sourcemaps in dev for easier debugging in WKWebView.
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
     // Tauri targets modern webviews (Chromium 105+ / Safari 15+).
